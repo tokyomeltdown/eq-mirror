@@ -1,6 +1,6 @@
 # EQ Mirror
 
-**See your analog EQ at work.**
+**Analog, made visible.**
 
 Put one EQ Mirror before your EQ and one after it, and you'll see the curve your EQ is actually applying. There's nothing to set up.
 
@@ -23,7 +23,7 @@ Put one EQ Mirror before your EQ and one after it, and you'll see the curve your
 
 - macOS 12 or later
 - Apple silicon or Intel
-- AU, VST3 and AAX (Pro Tools, Logic Pro, Ableton Live)
+- AU, VST3 and AAX, in any DAW that hosts them
 - Signed and notarized
 
 ## Privacy
