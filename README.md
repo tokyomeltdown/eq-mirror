@@ -14,7 +14,7 @@ Put one EQ Mirror before your EQ and one after it, and you'll see the curve your
 
 - **Measures instead of asking.** A plug-in cannot read another plug-in's curve, so EQ Mirror compares the audio going into your EQ with the audio coming out, and draws the difference.
 - **Nothing to set.** The two instances find each other on the track, work out which is first, and measure the EQ's latency to line themselves up — linear phase included.
-- **Boost and cut at a glance.** Warm above the line, cool below it, the largest of each labelled. The spectrum after the EQ sits faintly behind the curve.
+- **Boost and cut at a glance.** Warm above the line, cool below it, the largest of each labelled. Behind the curve, the music before and after the EQ, with the gap between them shaded in the same two colours.
 - **Left/right and mid/side.** When the two sides are treated differently, the curve opens into a band and says whether it is L / R or M / S.
 - **Distortion as one number.** How much of what comes out is not explained by the curve.
 - **Never touches your sound.** Bounces with and without it are bit-identical, and it adds no latency.
