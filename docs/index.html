@@ -218,23 +218,23 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
   <p class="k">03 · the difference</p>
   <h2><span class="blk en kin">That's <span class="warm">your EQ.</span></span><span class="blk ja kin">それが、<wbr><span class="warm">あなたのEQ。</span></span></h2>
 </div>
-<div class="cap top" data-ch="5" data-a="0" data-b="1">
+<div class="cap top" data-ch="4" data-a="0" data-b=".46">
+  <p class="k">04 · dock</p>
+  <h2><span class="blk en kin">Or just one,<br>with your EQ inside.</span><span class="blk ja kin">あるいは、<br>EQごと<wbr>1つに。</span></h2>
+</div>
+<div class="cap top" data-ch="4" data-a=".5" data-b="1">
+  <p class="k">04 · dock</p>
+  <h2><span class="blk en kin">Turn a knob.<br>The curve follows.</span><span class="blk ja kin">ツマミを回せば、<br>カーブが<wbr>ついてくる。</span></h2>
+  <p><span class="blk en">EQ Mirror Dock loads your AU or VST3 EQ and draws its curve as you turn it, even with the transport stopped. It comes with the same licence.</span><span class="blk ja">EQ Mirror Dock は、<wbr>AU / VST3 の<wbr>EQを<wbr>中に<wbr>読み込み、<wbr>回した<wbr>そばから<wbr>カーブを<wbr>描きます。<wbr>再生を<wbr>止めていても。<wbr>同じ<wbr>ライセンスで<wbr>使えます。</span></p>
+</div>
+<div class="cap top" data-ch="6" data-a="0" data-b="1">
   <p class="k">05 · stereo</p>
   <h2><span class="blk en kin">Left and right.<br>Mid and side.</span><span class="blk ja kin">左右も、<br>M/S も。</span></h2>
   <p><span class="blk en">When the two sides are treated differently, the curve opens into a band and says which.</span><span class="blk ja">左右で<wbr>違う<wbr>処理を<wbr>すると、<wbr>カーブに<wbr>幅が<wbr>出て、<wbr>どちらの<wbr>処理かを<wbr>教えて<wbr>くれます。</span></p>
 </div>
-<div class="cap top" data-ch="6" data-a="0" data-b=".5">
+<div class="cap top" data-ch="7" data-a="0" data-b=".5">
   <p class="k">06 · null</p>
   <h2><span class="blk en kin">With it. Without it.</span><span class="blk ja kin">挿した音と、<wbr>外した音。</span></h2>
-</div>
-<div class="cap top" data-ch="7" data-a="0" data-b=".5">
-  <p class="k">07 · dock</p>
-  <h2><span class="blk en kin">Or put your EQ<br>inside one.</span><span class="blk ja kin">あるいは、<br>EQごと<wbr>1つに。</span></h2>
-</div>
-<div class="cap top" data-ch="7" data-a=".52" data-b="1">
-  <p class="k">07 · dock</p>
-  <h2><span class="blk en kin">Turn a knob.<br>The curve follows.</span><span class="blk ja kin">ツマミを回せば、<br>カーブが<wbr>ついてくる。</span></h2>
-  <p><span class="blk en">EQ Mirror Dock loads your AU or VST3 EQ and draws its curve as you turn it, even with the transport stopped. It comes with the same licence.</span><span class="blk ja">EQ Mirror Dock は、<wbr>AU / VST3 の<wbr>EQを<wbr>中に<wbr>読み込み、<wbr>回した<wbr>そばから<wbr>カーブを<wbr>描きます。<wbr>再生を<wbr>止めていても。<wbr>同じ<wbr>ライセンスで<wbr>使えます。</span></p>
 </div>
 <div class="cap top" data-ch="8" data-a=".35" data-b="1">
   <h2 style="font-size:clamp(40px,8vw,128px)"><span class="blk en kin">Learn it by eye.<br><span class="warm">Then trust your ears.</span></span><span class="blk ja kin">見て覚えたら、<br><span class="warm">あとは耳で。</span></span></h2>
@@ -450,7 +450,7 @@ function wave(x, t, kind){
 function aura(x, y, r, c, a){ var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgba(c, a)); g.addColorStop(1, rgba(c, 0)); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
 
 /* ------------------------------------------------ scenes. Each gets t in 0..1 and the time in seconds. */
-var CH = 9, NAMES = ['SIGNAL','THE DIAL','TWO LISTENERS','THE DIFFERENCE','EVIDENCE','STEREO','NULL','DOCK','MIRROR'];
+var CH = 9, NAMES = ['SIGNAL','THE DIAL','TWO LISTENERS','THE DIFFERENCE','DOCK','EVIDENCE','STEREO','NULL','MIRROR'];
 var small = function(){ return W < 760; };
 var region = function(){ return small() ? { x: 16, y: H * .44, w: W - 32, h: H * .34 } : { x: W * .08, y: H * .38, w: W * .84, h: H * .44 }; };
 
@@ -608,45 +608,84 @@ function sceneNull(t, s, active){
   if (!active) return;
   var za = eout(seg(t, .66, .8)); zeroEl.style.opacity = za; zeroEl.style.transform = 'translate(-50%,-58%) scale(' + (1.25 - .25 * za) + ')'; zeroEl.style.filter = 'blur(' + ((1 - za) * 16) + 'px)';
 }
-// The Dock: one window, the curve on top and the EQ inside below it. The
-// transport stays stopped; the knob turns and the curve follows anyway.
+// The Dock. The two EQ Mirrors of scene 02 close in on the EQ between them
+// and become one window around it; the window opens, the curve on top and
+// the EQ's own panel below. Nothing is playing -- the line through it stays
+// flat -- and still the curve follows the knob.
 var SH_DOCK = curve([{ t:'bell', f:1240, g:6, q:1.1 }]);
+function rr(x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+function mixCol(a, b, t){ return 'rgb(' + a.map(function(v, i){ return Math.round(lerp(v, b[i], t)); }).join(',') + ')'; }
 function sceneDock(t, s){
-  var sm = small(), a = eout(seg(t, 0, .12));
-  // below the captions, which run to three lines and a paragraph
-  var f = sm ? { x: 16, y: H * .56, w: W - 32, h: H * .34 } : { x: W * .22, y: H * .53, w: W * .56, h: H * .4 };
-  var head = sm ? 30 : 38, top = f.h * .5, ink = rgba(COL.ink, 1);
-  if (a <= 0) return;
-  ctx.save(); ctx.globalAlpha = a;
-  // the window
-  ctx.shadowColor = 'rgba(27,31,35,.22)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
-  ctx.fillStyle = '#f6f7f8'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(f.x, f.y, f.w, f.h, 12) : ctx.rect(f.x, f.y, f.w, f.h); ctx.fill();
+  var sm = small(), a = eout(seg(t, 0, .1));
+  var m = eio(seg(t, .06, .32)), o = eio(seg(t, .34, .56)), turn = eio(seg(t, .6, .86));
+  // where scene 02 left the three
+  var y0 = sm ? H * .47 : H * .53, xs = [W * (sm ? .18 : .26), W * .5, W * (sm ? .82 : .74)], nw = sm ? W * .24 : 150, nh = sm ? 50 : 60;
+  // where the window ends up, below the captions
+  var F = sm ? { x: 16, y: H * .55, w: W - 32, h: H * .37 } : { x: W * .22, y: H * .52, w: W * .56, h: H * .42 };
+  var head = sm ? 30 : 40;
+  // the same light behind it as the other scenes, warm above and cool below
+  var cx = W / 2, cy = lerp(y0, F.y + F.h / 2, o);
+  aura(cx, cy - H * .05, W * .42, COL.boost, .05 * a * m); aura(cx + W * .08, cy + H * .08, W * .34, COL.cut, .045 * a * m);
+  // the frame: from around the three cards, to around the EQ, to the window
+  var hug = { x: W / 2 - nw * .95, y: y0 - nh * 1.05, w: nw * 1.9, h: nh * 2.1 };
+  var all = { x: xs[0] - nw / 2, y: y0 - nh / 2, w: xs[2] - xs[0] + nw, h: nh };
+  var fr = o > 0 ? { x: lerp(hug.x, F.x, o), y: lerp(hug.y, F.y, o), w: lerp(hug.w, F.w, o), h: lerp(hug.h, F.h, o) }
+                 : { x: lerp(all.x, hug.x, m), y: lerp(all.y, hug.y, m), w: lerp(all.w, hug.w, m), h: lerp(all.h, hug.h, m) };
+  // the flat line through its middle: no audio, all the way through
+  var ly0 = fr.y + fr.h / 2;
+  ctx.save(); ctx.globalAlpha = a * (1 - o) * .8; ctx.strokeStyle = rgba(COL.ink, .3); ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(0, ly0); ctx.lineTo(W, ly0); ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.globalAlpha = a * m;
+  ctx.shadowColor = 'rgba(27,31,35,.2)'; ctx.shadowBlur = 44; ctx.shadowOffsetY = 18;
+  rr(fr.x, fr.y, fr.w, fr.h, 14); ctx.fillStyle = '#f7f8f9'; ctx.fill();
   ctx.shadowColor = 'transparent'; ctx.strokeStyle = 'rgba(60,66,72,.2)'; ctx.lineWidth = 1; ctx.stroke();
-  // its header: the name, and the EQ it holds
-  ctx.textAlign = 'left'; ctx.font = '700 ' + (sm ? 12 : 14) + 'px ' + FONT; ctx.fillStyle = ink; ctx.fillText('EQ', f.x + 18, f.y + head * .66);
-  ctx.font = '400 ' + (sm ? 12 : 14) + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, .7); ctx.fillText('Mirror', f.x + 18 + (sm ? 20 : 24), f.y + head * .66);
-  ctx.font = '500 ' + (sm ? 9 : 10) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5); ctx.fillText('DOCK', f.x + 18 + (sm ? 64 : 76), f.y + head * .66);
-  ctx.font = '600 ' + (sm ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = ink; ctx.fillText((LANG === 'ja' ? 'あなたのEQ' : 'Your EQ') + '  ▾', f.x + (sm ? 130 : 170), f.y + head * .66);
-  // stopped, all the way through
-  ctx.textAlign = 'right'; ctx.font = '500 ' + (sm ? 10 : 11) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .55);
-  ctx.fillText('■ ' + (LANG === 'ja' ? '停止中' : 'STOPPED'), f.x + f.w - 18, f.y + head * .66);
+  // its name, in the plug-in's own weights
+  var ny = fr.y + (o > 0 ? lerp(18, head * .66, o) : 18), fs = sm ? 12 : 14;
+  ctx.textAlign = 'left'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, 1); ctx.fillText('EQ', fr.x + 16, ny);
+  var wEQ = ctx.measureText('EQ ').width; ctx.font = '400 ' + fs + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, .7); ctx.fillText('Mirror', fr.x + 16 + wEQ, ny);
+  var wM = ctx.measureText('Mirror ').width; ctx.font = '500 ' + (fs - 4) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5); ctx.fillText('DOCK', fr.x + 16 + wEQ + wM, ny);
   ctx.restore();
-  // the curve, following the knob below
-  var n = .5 + .25 * eio(seg(t, .3, .75)), g = (n - .5) * 24;
-  // range 14: the tag above the peak clears the header
-  display({ x: f.x + 14, y: f.y + head, w: f.w - 28, h: top - head, range: sm ? 22 : 14, curve: mix(SH_FLAT, SH_DOCK, g / 6), alpha: a, tags: seg(t, .55, .7), tagSize: sm ? 12 : 14 });
-  // the EQ inside: its own panel and its own knob
+  // the two cards slide in and fade into the frame
+  node(lerp(xs[0], W / 2 - nw * .55, m), y0, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの前' : 'before', false, a * (1 - m));
+  node(lerp(xs[2], W / 2 + nw * .55, m), y0, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの後ろ' : 'after', false, a * (1 - m));
+  // the window's own furniture
+  if (o > 0){
+    ctx.save(); ctx.globalAlpha = a * o;
+    ctx.textAlign = 'left'; ctx.font = '600 ' + (sm ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, 1);
+    ctx.fillText((LANG === 'ja' ? 'あなたのEQ' : 'Your EQ') + '  ▾', fr.x + (sm ? 128 : 168), fr.y + head * .66);
+    ctx.textAlign = 'right'; ctx.font = '500 ' + (sm ? 10 : 11) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .55);
+    ctx.fillText('■ ' + (LANG === 'ja' ? '停止中' : 'STOPPED'), fr.x + fr.w - 16, fr.y + head * .66);
+    ctx.strokeStyle = rgba(COL.ink, .08); ctx.beginPath(); ctx.moveTo(fr.x, fr.y + head); ctx.lineTo(fr.x + fr.w, fr.y + head); ctx.stroke();
+    ctx.restore();
+    var n = .5 + .25 * turn;
+    display({ x: fr.x + 14, y: fr.y + head, w: fr.w - 28, h: fr.h * .48 - head, range: sm ? 22 : 14, curve: mix(SH_FLAT, SH_DOCK, (n - .5) * 4), alpha: a * o, tags: seg(t, .78, .9), tagSize: sm ? 12 : 14 });
+  }
+  // the EQ: a dark card, then the light panel of its own window
+  var card = { x: W / 2 - nw * .45, y: y0 - nh / 2, w: nw * .9, h: nh };
+  // inside the window as it is now, so nothing arrives ahead of it
+  var pan = { x: fr.x + 14, y: fr.y + fr.h * .48 + 6, w: fr.w - 28, h: fr.h * .52 - 20 };
+  var e = { x: lerp(card.x, pan.x, o), y: lerp(card.y, pan.y, o), w: lerp(card.w, pan.w, o), h: lerp(card.h, pan.h, o) };
   ctx.save(); ctx.globalAlpha = a;
-  var py = f.y + top + 8, ph = f.h - top - 16;
-  ctx.fillStyle = '#e4e7ea'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(f.x + 14, py, f.w - 28, ph, 8) : ctx.rect(f.x + 14, py, f.w - 28, ph); ctx.fill();
-  ctx.strokeStyle = 'rgba(60,66,72,.14)'; ctx.lineWidth = 1; ctx.stroke();
-  ctx.textAlign = 'left'; ctx.font = '600 ' + (sm ? 10 : 12) + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, .5);
-  ctx.fillText(LANG === 'ja' ? 'あなたのEQの画面' : 'Your EQ’s own window', f.x + 30, py + 22);
+  ctx.shadowColor = 'rgba(27,31,35,' + (.18 * (1 - o)) + ')'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
+  // dark to light quickly, early in the move, so it never sits in a muddy grey
+  var oc = eio(seg(o, .05, .4));
+  rr(e.x, e.y, e.w, e.h, lerp(12, 9, o)); ctx.fillStyle = mixCol([43,50,56], [228,231,234], oc); ctx.fill(); ctx.shadowColor = 'transparent';
+  if (oc > .5){ ctx.strokeStyle = 'rgba(60,66,72,' + (.14 * oc) + ')'; ctx.lineWidth = 1; ctx.stroke(); }
+  // its label rides from the middle of the card to the panel's corner
+  var lx = lerp(e.x + e.w / 2, e.x + 16, o), ly = lerp(e.y + e.h / 2 + 5, e.y + 22, o);
+  var lt = oc > .5;
+  ctx.textAlign = lt ? 'left' : 'center'; if (lt) lx = e.x + 16;
+  ctx.globalAlpha = a * (lt ? seg(oc, .5, 1) : 1 - seg(oc, 0, .5));
+  ctx.font = (lt ? '600 ' + (sm ? 10 : 12) : '700 ' + (sm ? 11 : 14)) + 'px ' + FONT;
+  ctx.fillStyle = lt ? rgba(COL.ink, .5) : '#eceef0';
+  ctx.fillText(lt ? (LANG === 'ja' ? 'あなたのEQの画面' : 'Your EQ’s own window') : (LANG === 'ja' ? 'あなたのEQ' : 'Your EQ'), lx, ly);
   ctx.restore();
-  ctx.save(); ctx.globalAlpha = a;
-  var R = Math.min(ph * .26, sm ? W * .1 : 64);
-  knob(f.x + f.w / 2, py + ph * .52, R, n, t);
-  ctx.restore();
+  // and its knob, once the panel is there
+  if (o > .6){
+    ctx.save(); ctx.globalAlpha = a * seg(o, .6, 1);
+    knob(pan.x + pan.w / 2, pan.y + pan.h * .5, Math.min(pan.h * .27, sm ? W * .1 : 62), .5 + .25 * turn, t);
+    ctx.restore();
+  }
 }
 // The last scene: a bell and its reflection shrink into the EQ Mirror mark.
 function bez(p0, p1, p2, p3, u){ var v = 1 - u; return v*v*v*p0 + 3*v*v*u*p1 + 3*v*u*u*p2 + u*u*u*p3; }
@@ -672,7 +711,7 @@ function sceneMirror(t, s){
   glow(top, COL.boost, lerp(2.4 * uiScale(W * .84), 4, m));
   ctx.save(); ctx.globalAlpha = lerp(.3, .38, m); path(bot); ctx.strokeStyle = rgba(COL.ink, .9); ctx.lineWidth = lerp(2.4 * uiScale(W * .84), 5, m); ctx.lineCap = 'round'; ctx.stroke(); ctx.restore();
 }
-var SCENES = [sceneSignal, sceneDial, sceneListeners, sceneDifference, sceneEvidence, sceneStereo, sceneNull, sceneDock, sceneMirror];
+var SCENES = [sceneSignal, sceneDial, sceneListeners, sceneDifference, sceneDock, sceneEvidence, sceneStereo, sceneNull, sceneMirror];
 
 /* ------------------------------------------------ kinetic captions */
 var caps = Array.prototype.slice.call(document.querySelectorAll('.cap')).map(function(el){
@@ -732,8 +771,8 @@ function frame(now){
   var fadeIn = ci > 0 ? eout(seg(t, 0, .1)) : 1;
   if (ci > 0 && fadeIn < 1){ ctx.save(); ctx.globalAlpha = 1 - fadeIn; SCENES[ci - 1](1, s, false); ctx.restore(); }
   ctx.save(); ctx.globalAlpha = fadeIn; SCENES[ci](t, s, true); ctx.restore();
-  if (ci !== 4){ numEl.style.opacity = 0; numCap.style.opacity = 0; }
-  if (ci !== 6) zeroEl.style.opacity = 0;
+  if (ci !== 5){ numEl.style.opacity = 0; numCap.style.opacity = 0; }
+  if (ci !== 7) zeroEl.style.opacity = 0;
   drawCaps(ci, t);
   // letterbox opens as the film starts; closes again at the end credits
   var bar = Math.max(0, 1 - eout((now - introT0) / 1400)) * H * .5;  // on the light stage the bars only open; closing them again reads as a dark smear
