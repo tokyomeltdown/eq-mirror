@@ -621,16 +621,26 @@ var SH_DOCK = curve([{ t:'bell', f:1240, g:6, q:1.1 }]);
 function rr(x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
 function mixCol(a, b, t){ return 'rgb(' + a.map(function(v, i){ return Math.round(lerp(v, b[i], t)); }).join(',') + ')'; }
 function sceneDock(t, s){
-  var sm = small(), a = eout(seg(t, 0, .1));
-  var m = eio(seg(t, .06, .32)), o = eio(seg(t, .34, .56)), turn = eio(seg(t, .6, .82));
+  var sm = small(), a = 1;
+  // first the hand-off: scene 03's curve settles back to the flat line, and
+  // the three cards of scene 02 rise onto it one after another
+  var h = eio(seg(t, 0, .16)), c0 = eout(seg(t, .1, .2)), c1 = eout(seg(t, .13, .23)), c2 = eout(seg(t, .16, .26));
+  var m = eio(seg(t, .26, .44)), o = eio(seg(t, .44, .63)), turn = eio(seg(t, .65, .84));
   // and at the end the window gives way: its curve settles back to flat and
   // opens out to the next scene's full width, the music starting under it
-  var x = eio(seg(t, .86, 1));
-  // where scene 02 left the three
-  var y0 = sm ? H * .47 : H * .53, xs = [W * (sm ? .18 : .26), W * .5, W * (sm ? .82 : .74)], nw = sm ? W * .24 : 150, nh = sm ? 50 : 60;
+  var x = eio(seg(t, .88, 1));
+  // the three cards, laid out as in scene 02
+  // on the very line scene 03's curve settles to
+  var y0 = region().y + region().h / 2, xs = [W * (sm ? .18 : .26), W * .5, W * (sm ? .82 : .74)], nw = sm ? W * .24 : 150, nh = sm ? 50 : 60;
   // where the window ends up, below the captions
   var F = sm ? { x: 16, y: H * .55, w: W - 32, h: H * .37 } : { x: W * .22, y: H * .52, w: W * .56, h: H * .42 };
   var head = sm ? 30 : 40;
+  if (h < 1){
+    var inS = spectrum(s * .6, 1.3), outS = new Float32Array(N);
+    for (var q = 0; q < N; q++) outS[q] = inS[q] + SH_FLOW[q] * (1 - h);
+    display({ x: region().x, y: region().y, w: region().w, h: region().h, range: 9, curve: mix(SH_FLOW, SH_FLAT, h), spec: outS, specA: .8 * (1 - h),
+              alpha: 1 - eio(seg(t, .08, .2)), tags: 1 - seg(t, 0, .06), labels: !sm, bleed: W });
+  }
   // the same light behind it as the other scenes, warm above and cool below
   var cx = W / 2, cy = lerp(y0, F.y + F.h / 2, o);
   aura(cx, cy - H * .05, W * .42, COL.boost, .05 * a * m); aura(cx + W * .08, cy + H * .08, W * .34, COL.cut, .045 * a * m);
@@ -641,7 +651,7 @@ function sceneDock(t, s){
                  : { x: lerp(all.x, hug.x, m), y: lerp(all.y, hug.y, m), w: lerp(all.w, hug.w, m), h: lerp(all.h, hug.h, m) };
   // the flat line through its middle: no audio, all the way through
   var ly0 = fr.y + fr.h / 2;
-  ctx.save(); ctx.globalAlpha = a * (1 - o) * .8; ctx.strokeStyle = rgba(COL.ink, .3); ctx.lineWidth = 1.2;
+  ctx.save(); ctx.globalAlpha = seg(t, .08, .18) * (1 - o) * .8; ctx.strokeStyle = rgba(COL.ink, .3); ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.moveTo(0, ly0); ctx.lineTo(W, ly0); ctx.stroke(); ctx.restore();
   ctx.save(); ctx.globalAlpha = a * m * (1 - x);
   ctx.shadowColor = 'rgba(27,31,35,.2)'; ctx.shadowBlur = 44; ctx.shadowOffsetY = 18;
@@ -654,8 +664,11 @@ function sceneDock(t, s){
   var wM = ctx.measureText('Mirror ').width; ctx.font = '500 ' + (fs - 4) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5); ctx.fillText('DOCK', fr.x + 16 + wEQ + wM, ny);
   ctx.restore();
   // the two cards slide in and fade into the frame
-  node(lerp(xs[0], W / 2 - nw * .55, m), y0, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの前' : 'before', false, a * (1 - m));
-  node(lerp(xs[2], W / 2 + nw * .55, m), y0, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの後ろ' : 'after', false, a * (1 - m));
+  node(lerp(xs[0], W / 2 - nw * .55, m), y0 + (1 - c0) * 16, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの前' : 'before', false, c0 * (1 - m));
+  node(lerp(xs[2], W / 2 + nw * .55, m), y0 + (1 - c2) * 16, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの後ろ' : 'after', false, c2 * (1 - m));
+  // everything from here on stays inside the window while it opens
+  var clipped = o > 0 && o < 1;
+  if (clipped){ ctx.save(); rr(fr.x, fr.y, fr.w, fr.h, 14); ctx.clip(); }
   // the window's own furniture
   if (o > 0){
     ctx.save(); ctx.globalAlpha = a * o * (1 - x);
@@ -669,15 +682,15 @@ function sceneDock(t, s){
     var R = small() ? { x: 16, y: H * .52, w: W - 32, h: H * .3 } : { x: W * .08, y: H * .46, w: W * .84, h: H * .38 };
     var D = { x: fr.x + 14, y: fr.y + head, w: fr.w - 28, h: fr.h * .48 - head };
     display({ x: lerp(D.x, R.x, x), y: lerp(D.y, R.y, x), w: lerp(D.w, R.w, x), h: lerp(D.h, R.h, x), range: lerp(sm ? 22 : 14, 7, x),
-              curve: mix(SH_FLAT, SH_DOCK, (n - .5) * 4 * (1 - x)), alpha: a * o, tags: seg(t, .74, .84) * (1 - x), tagSize: sm ? 12 : 14,
+              curve: mix(SH_FLAT, SH_DOCK, (n - .5) * 4 * (1 - x)), alpha: a * o, tags: seg(t, .76, .86) * (1 - x), tagSize: sm ? 12 : 14,
               spec: x > 0 ? spectrum(s * .7, 2) : null, specA: .6 * x, labels: x > .5 && !small(), bleed: W * x });
   }
   // the EQ: a dark card, then the light panel of its own window
-  var card = { x: W / 2 - nw * .45, y: y0 - nh / 2, w: nw * .9, h: nh };
+  var card = { x: W / 2 - nw * .45, y: y0 - nh / 2 + (1 - c1) * 16, w: nw * .9, h: nh };
   // inside the window as it is now, so nothing arrives ahead of it
   var pan = { x: fr.x + 14, y: fr.y + fr.h * .48 + 6, w: fr.w - 28, h: fr.h * .52 - 20 };
   var e = { x: lerp(card.x, pan.x, o), y: lerp(card.y, pan.y, o), w: lerp(card.w, pan.w, o), h: lerp(card.h, pan.h, o) };
-  ctx.save(); ctx.globalAlpha = a * (1 - x);
+  ctx.save(); ctx.globalAlpha = c1 * (1 - x);
   ctx.shadowColor = 'rgba(27,31,35,' + (.18 * (1 - o)) + ')'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
   // dark to light quickly, early in the move, so it never sits in a muddy grey
   var oc = eio(seg(o, .05, .4));
@@ -687,7 +700,7 @@ function sceneDock(t, s){
   var lx = lerp(e.x + e.w / 2, e.x + 16, o), ly = lerp(e.y + e.h / 2 + 5, e.y + 22, o);
   var lt = oc > .5;
   ctx.textAlign = lt ? 'left' : 'center'; if (lt) lx = e.x + 16;
-  ctx.globalAlpha = a * (1 - x) * (lt ? seg(oc, .5, 1) : 1 - seg(oc, 0, .5));
+  ctx.globalAlpha = c1 * (1 - x) * (lt ? seg(oc, .5, 1) : 1 - seg(oc, 0, .5));
   ctx.font = (lt ? '600 ' + (sm ? 10 : 12) : '700 ' + (sm ? 11 : 14)) + 'px ' + FONT;
   ctx.fillStyle = lt ? rgba(COL.ink, .5) : '#eceef0';
   ctx.fillText(lt ? (LANG === 'ja' ? 'あなたのEQの画面' : 'Your EQ’s own window') : (LANG === 'ja' ? 'あなたのEQ' : 'Your EQ'), lx, ly);
@@ -698,6 +711,7 @@ function sceneDock(t, s){
     knob(pan.x + pan.w / 2, pan.y + pan.h * .5, Math.min(pan.h * .27, sm ? W * .1 : 62), .5 + .25 * turn, t);
     ctx.restore();
   }
+  if (clipped) ctx.restore();
 }
 // The last scene: a bell and its reflection shrink into the EQ Mirror mark.
 function bez(p0, p1, p2, p3, u){ var v = 1 - u; return v*v*v*p0 + 3*v*v*u*p1 + 3*v*u*u*p2 + u*u*u*p3; }
@@ -780,7 +794,7 @@ function frame(now){
   var p = clamp(cur, 0, 1), f = p * CH, ci = Math.min(CH - 1, Math.floor(f)), t = f - ci, s = REDUCED ? 4 : now / 1000;
   ctx.clearRect(0, 0, W, H);
   // crossfade: the outgoing scene lingers for a moment under the incoming one
-  var fadeIn = ci > 0 ? eout(seg(t, 0, .1)) : 1;
+  var fadeIn = ci > 0 && SCENES[ci] !== sceneDock ? eout(seg(t, 0, .1)) : 1;
   if (ci > 0 && fadeIn < 1){ ctx.save(); ctx.globalAlpha = 1 - fadeIn; SCENES[ci - 1](1, s, false); ctx.restore(); }
   ctx.save(); ctx.globalAlpha = fadeIn; SCENES[ci](t, s, true); ctx.restore();
   if (ci !== 5){ numEl.style.opacity = 0; numCap.style.opacity = 0; }
