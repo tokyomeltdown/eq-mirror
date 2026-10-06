@@ -2,7 +2,7 @@
 
 **Analog, made visible.**
 
-Put one EQ Mirror before your EQ and one after it, and you'll see the curve your EQ is actually applying. There's nothing to set up.
+Put one EQ Mirror before your EQ and one after it, and you'll see the curve your EQ is actually applying. There's nothing to set up. Or load your EQ inside **EQ Mirror Dock** and see its curve from a single instance.
 
 → **[Download the free trial](https://github.com/tokyomeltdown/eq-mirror/releases/latest/download/EQMirror.pkg)** — 14 days, every feature, no account needed
 → **[Landing page](https://tokyomeltdown.github.io/eq-mirror/)**
@@ -19,11 +19,19 @@ Put one EQ Mirror before your EQ and one after it, and you'll see the curve your
 - **Distortion as one number.** How much of what comes out is not explained by the curve.
 - **Never touches your sound.** Bounces with and without it are bit-identical, and it adds no latency.
 
+## EQ Mirror Dock
+
+Included with the same licence. One plug-in, with your EQ inside it.
+
+- **Your EQ, loaded inside.** Pick any AU or VST3 EQ from the list; its own window opens below the curve.
+- **The curve follows the knob.** The Dock measures a second copy of your EQ in the background, so the curve moves as you turn it, even with the transport stopped.
+- **The sound is your EQ's.** The audio goes through the EQ you load and nothing else, delayed by that EQ's own latency, which the Dock reports to your DAW.
+
 ## Requirements
 
 - macOS 12 or later
 - Apple silicon or Intel
-- AU, VST3 and AAX, in any DAW that hosts them
+- AU, VST3 and AAX, in any DAW that hosts them (EQ Mirror Dock loads AU and VST3 EQs, stereo in and out)
 - Signed and notarized
 
 ## Privacy
