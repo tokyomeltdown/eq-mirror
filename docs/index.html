@@ -98,6 +98,8 @@ body.lang-ja .cap h1{letter-spacing:-.02em;line-height:1.08;font-size:clamp(40px
 body.lang-ja .cap h2{letter-spacing:-.01em;line-height:1.15;font-size:clamp(28px,5vw,78px)}
 .cap p{margin:20px auto 0;max-width:760px;font-size:clamp(15px,1.6vw,19px);line-height:1.6;color:var(--sub)}
 .cap .warm{color:var(--boost)} .cap .cool{color:var(--cut)}
+.dockname h2,body.lang-ja .dockname h2{font-size:clamp(46px,9.5vw,152px);letter-spacing:-.045em;line-height:1}
+.dockname h2 b{font-weight:700} .dockname h2 i{font-style:normal;font-weight:300;opacity:.72}
 .c{display:inline-block;will-change:transform,opacity,filter}
 .sp{display:inline-block;width:.28em}
 .ph{display:inline-block;white-space:nowrap}
@@ -218,11 +220,15 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
   <p class="k">03 · the difference</p>
   <h2><span class="blk en kin">That's <span class="warm">your EQ.</span></span><span class="blk ja kin">それが、<wbr><span class="warm">あなたのEQ。</span></span></h2>
 </div>
-<div class="cap top" data-ch="4" data-a="0" data-b=".46">
+<div class="cap top" data-ch="4" data-a="0" data-b=".3">
   <p class="k">04 · dock</p>
   <h2><span class="blk en kin">Or just one,<br>with your EQ inside.</span><span class="blk ja kin">あるいは、<br>EQごと<wbr>1つに。</span></h2>
 </div>
-<div class="cap top" data-ch="4" data-a=".5" data-b=".9">
+<div class="cap top dockname" data-ch="4" data-a=".31" data-b=".5">
+  <p class="k">04 · dock</p>
+  <h2><span class="blk en kin"><b>EQ</b> <i>Mirror</i> <span class="warm">Dock</span></span><span class="blk ja kin"><b>EQ</b> <i>Mirror</i> <span class="warm">Dock</span></span></h2>
+</div>
+<div class="cap top" data-ch="4" data-a=".52" data-b=".9">
   <p class="k">04 · dock</p>
   <h2><span class="blk en kin">Turn a knob.<br>The curve follows.</span><span class="blk ja kin">ツマミを回せば、<br>カーブが<wbr>ついてくる。</span></h2>
   <p><span class="blk en">EQ Mirror Dock loads your AU or VST3 EQ and draws its curve as you turn it, even with the transport stopped. One licence covers both.</span><span class="blk ja">EQ Mirror Dock は、<wbr>AU / VST3 の<wbr>EQを<wbr>中に<wbr>読み込み、<wbr>再生を<wbr>止めていても、<wbr>回した<wbr>そばから<wbr>カーブを<wbr>描きます。<wbr>ライセンスは<wbr>EQ Mirror と<wbr>共通です。</span></p>
@@ -625,7 +631,7 @@ function sceneDock(t, s){
   // first the hand-off: scene 03's curve settles back to the flat line, and
   // the three cards of scene 02 rise onto it one after another
   var h = eio(seg(t, 0, .16)), c0 = eout(seg(t, .1, .2)), c1 = eout(seg(t, .13, .23)), c2 = eout(seg(t, .16, .26));
-  var m = eio(seg(t, .26, .44)), o = eio(seg(t, .44, .63)), turn = eio(seg(t, .65, .84));
+  var m = eio(seg(t, .24, .4)), o = eio(seg(t, .46, .64)), turn = eio(seg(t, .66, .85));
   // and at the end the window gives way: its curve settles back to flat and
   // opens out to the next scene's full width, the music starting under it
   var x = eio(seg(t, .88, 1));
