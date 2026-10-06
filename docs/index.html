@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EQ Mirror — Analog, made visible.</title>
-<meta name="description" content="EQ Mirror shows the curve your EQ is actually applying. One instance before your EQ, one after. AU, VST3 and AAX for macOS. $18.">
+<meta name="description" content="EQ Mirror shows the curve your EQ is actually applying: one instance before your EQ and one after, or your EQ inside EQ Mirror Dock. AU, VST3 and AAX for macOS. $18.">
 <meta name="theme-color" content="#eceef0">
 <meta name="color-scheme" content="light">
 <link rel="canonical" href="https://tokyomeltdown.github.io/eq-mirror/">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:title" content="EQ Mirror — Analog, made visible.">
-<meta property="og:description" content="One EQ Mirror before your EQ, one after, and you see the curve it is really applying. AU, VST3 and AAX for macOS.">
+<meta property="og:description" content="One EQ Mirror before your EQ, one after, and you see the curve it is really applying. Or put your EQ inside EQ Mirror Dock. AU, VST3 and AAX for macOS.">
 <meta property="og:url" content="https://tokyomeltdown.github.io/eq-mirror/">
 <meta property="og:image" content="https://tokyomeltdown.github.io/eq-mirror/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -29,7 +29,7 @@
   line -- the 0 dB line -- runs through every scene and becomes each thing in
   turn: a waveform, a bell under a turning knob, two signals lining up, the
   difference between them, three measured curves, a mid/side band, a null,
-  and finally the EQ Mirror mark itself.
+  an EQ held inside the Dock, and finally the EQ Mirror mark itself.
 
   Nothing is loaded from anywhere else. A product that talks to nobody gets a
   page that talks to nobody.
@@ -119,7 +119,7 @@ body.lang-ja .ja{word-break:keep-all;overflow-wrap:anywhere}
 @keyframes drip{0%{transform:scaleY(0)}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
 
 /* ---------------- the film's length, then ordinary pages ---------------- */
-#film{height:1000vh;position:relative;z-index:1}
+#film{height:1125vh;position:relative;z-index:1}
 .after{position:relative;z-index:8;background:var(--bg)}
 .after::before{content:"";position:absolute;left:0;right:0;top:-40vh;height:40vh;background:linear-gradient(transparent,var(--bg));pointer-events:none}
 .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
@@ -227,7 +227,16 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
   <p class="k">06 · null</p>
   <h2><span class="blk en kin">With it. Without it.</span><span class="blk ja kin">挿した音と、<wbr>外した音。</span></h2>
 </div>
-<div class="cap top" data-ch="7" data-a=".35" data-b="1">
+<div class="cap top" data-ch="7" data-a="0" data-b=".5">
+  <p class="k">07 · dock</p>
+  <h2><span class="blk en kin">Or put your EQ<br>inside one.</span><span class="blk ja kin">あるいは、<br>EQごと<wbr>1つに。</span></h2>
+</div>
+<div class="cap top" data-ch="7" data-a=".52" data-b="1">
+  <p class="k">07 · dock</p>
+  <h2><span class="blk en kin">Turn a knob.<br>The curve follows.</span><span class="blk ja kin">ツマミを回せば、<br>カーブが<wbr>ついてくる。</span></h2>
+  <p><span class="blk en">EQ Mirror Dock loads your AU or VST3 EQ and draws its curve as you turn it, even with the transport stopped. It comes with the same licence.</span><span class="blk ja">EQ Mirror Dock は、<wbr>AU / VST3 の<wbr>EQを<wbr>中に<wbr>読み込み、<wbr>回した<wbr>そばから<wbr>カーブを<wbr>描きます。<wbr>再生を<wbr>止めていても。<wbr>同じ<wbr>ライセンスで<wbr>使えます。</span></p>
+</div>
+<div class="cap top" data-ch="8" data-a=".35" data-b="1">
   <h2 style="font-size:clamp(40px,8vw,128px)"><span class="blk en kin">Learn it by eye.<br><span class="warm">Then trust your ears.</span></span><span class="blk ja kin">見て覚えたら、<br><span class="warm">あとは耳で。</span></span></h2>
 </div>
 
@@ -255,19 +264,20 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
         <span><span class="en">Up to five Macs</span><span class="ja">5台まで</span></span>
         <span><span class="en">No subscription</span><span class="ja">サブスクなし</span></span>
         <span><span class="en">Free updates</span><span class="ja">無料アップデート</span></span>
+        <span><span class="en">EQ Mirror Dock included</span><span class="ja">EQ Mirror Dock 付き</span></span>
       </div>
       <div class="cta">
         <a class="btn solid big" href="https://github.com/tokyomeltdown/eq-mirror/releases/latest/download/EQMirror.pkg"><span class="en">Try it free for 14 days</span><span class="ja">14日間無料で試す</span> →</a>
         <a class="btn ghost big" href="https://tokyomeltdown.gumroad.com/l/eqmirror" target="_blank" rel="noopener"><span class="en">Buy — $18</span><span class="ja">購入する — $18</span></a>
       </div>
-      <p class="note"><span class="blk en">The trial starts the first time you open EQ Mirror's window, not when your DAW scans it. When it ends, measuring stops and your audio keeps playing exactly as before.</span><span class="blk ja">トライアル期間は、<wbr>DAWが<wbr>スキャンした<wbr>ときでは<wbr>なく、<wbr>EQ Mirror の<wbr>画面を<wbr>初めて<wbr>開いた<wbr>ときから<wbr>始まります。<wbr>期間が<wbr>終わると<wbr>測定は<wbr>止まりますが、<wbr>音は<wbr>そのまま<wbr>出続けます。</span></p>
+      <p class="note"><span class="blk en">The trial starts the first time you open EQ Mirror's window, not when your DAW scans it. When it ends, the curves stop showing and your audio keeps playing exactly as before.</span><span class="blk ja">トライアル期間は、<wbr>DAWが<wbr>スキャンした<wbr>ときでは<wbr>なく、<wbr>EQ Mirror の<wbr>画面を<wbr>初めて<wbr>開いた<wbr>ときから<wbr>始まります。<wbr>期間が<wbr>終わると<wbr>カーブは<wbr>表示されなく<wbr>なりますが、<wbr>音は<wbr>そのまま<wbr>出続けます。</span></p>
     </div>
   </section>
   <div class="wrap">
     <div class="spec">
-      <div><p class="t">Formats</p><p class="v"><span class="nw">AU · VST3 · AAX</span></p><p class="s"><span class="en">In any DAW that hosts these formats</span><span class="ja">これらの<wbr>形式に<wbr>対応した<wbr>DAWで</span></p></div>
+      <div><p class="t">Formats</p><p class="v"><span class="nw">AU · VST3 · AAX</span></p><p class="s"><span class="en">In any DAW that hosts these formats. The Dock loads AU and VST3 EQs</span><span class="ja">これらの<wbr>形式に<wbr>対応した<wbr>DAWで。<wbr>Dock に<wbr>入るのは<wbr>AU と<wbr>VST3 の<wbr>EQ</span></p></div>
       <div><p class="t">System</p><p class="v"><span class="nw">macOS 12+</span></p><p class="s"><span class="nw">Apple silicon</span> &amp; Intel<br><span class="en">Signed &amp; notarized</span><span class="ja">署名・公証済み</span></p></div>
-      <div><p class="t"><span class="en">Your sound</span><span class="ja">音への影響</span></p><p class="v"><span class="en">Untouched</span><span class="ja">なし</span></p><p class="s"><span class="en">Bit-identical bounces, no added latency</span><span class="ja">書き出しは<wbr>ビット単位で<wbr>一致、<wbr>レイテンシ0</span></p></div>
+      <div><p class="t"><span class="en">Your sound</span><span class="ja">音への影響</span></p><p class="v"><span class="en">Untouched</span><span class="ja">なし</span></p><p class="s"><span class="en">Bit-identical bounces, no added latency. The Dock sounds exactly like your EQ on its own</span><span class="ja">書き出しは<wbr>ビット単位で<wbr>一致、<wbr>レイテンシ0。<wbr>Dock の<wbr>音は<wbr>EQ<wbr>単体と<wbr>同じ</span></p></div>
       <div><p class="t"><span class="en">Privacy</span><span class="ja">プライバシー</span></p><p class="v"><span class="en">Offline</span><span class="ja">オフライン</span></p><p class="s"><span class="en">One request, once, to check your key</span><span class="ja">通信は<wbr>ライセンス<wbr>認証の<wbr>1回だけ</span></p></div>
     </div>
     <footer>
@@ -440,7 +450,7 @@ function wave(x, t, kind){
 function aura(x, y, r, c, a){ var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgba(c, a)); g.addColorStop(1, rgba(c, 0)); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
 
 /* ------------------------------------------------ scenes. Each gets t in 0..1 and the time in seconds. */
-var CH = 8, NAMES = ['SIGNAL','THE DIAL','TWO LISTENERS','THE DIFFERENCE','EVIDENCE','STEREO','NULL','MIRROR'];
+var CH = 9, NAMES = ['SIGNAL','THE DIAL','TWO LISTENERS','THE DIFFERENCE','EVIDENCE','STEREO','NULL','DOCK','MIRROR'];
 var small = function(){ return W < 760; };
 var region = function(){ return small() ? { x: 16, y: H * .44, w: W - 32, h: H * .34 } : { x: W * .08, y: H * .38, w: W * .84, h: H * .44 }; };
 
@@ -598,6 +608,46 @@ function sceneNull(t, s, active){
   if (!active) return;
   var za = eout(seg(t, .66, .8)); zeroEl.style.opacity = za; zeroEl.style.transform = 'translate(-50%,-58%) scale(' + (1.25 - .25 * za) + ')'; zeroEl.style.filter = 'blur(' + ((1 - za) * 16) + 'px)';
 }
+// The Dock: one window, the curve on top and the EQ inside below it. The
+// transport stays stopped; the knob turns and the curve follows anyway.
+var SH_DOCK = curve([{ t:'bell', f:1240, g:6, q:1.1 }]);
+function sceneDock(t, s){
+  var sm = small(), a = eout(seg(t, 0, .12));
+  // below the captions, which run to three lines and a paragraph
+  var f = sm ? { x: 16, y: H * .56, w: W - 32, h: H * .34 } : { x: W * .22, y: H * .53, w: W * .56, h: H * .4 };
+  var head = sm ? 30 : 38, top = f.h * .5, ink = rgba(COL.ink, 1);
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a;
+  // the window
+  ctx.shadowColor = 'rgba(27,31,35,.22)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
+  ctx.fillStyle = '#f6f7f8'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(f.x, f.y, f.w, f.h, 12) : ctx.rect(f.x, f.y, f.w, f.h); ctx.fill();
+  ctx.shadowColor = 'transparent'; ctx.strokeStyle = 'rgba(60,66,72,.2)'; ctx.lineWidth = 1; ctx.stroke();
+  // its header: the name, and the EQ it holds
+  ctx.textAlign = 'left'; ctx.font = '700 ' + (sm ? 12 : 14) + 'px ' + FONT; ctx.fillStyle = ink; ctx.fillText('EQ', f.x + 18, f.y + head * .66);
+  ctx.font = '400 ' + (sm ? 12 : 14) + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, .7); ctx.fillText('Mirror', f.x + 18 + (sm ? 20 : 24), f.y + head * .66);
+  ctx.font = '500 ' + (sm ? 9 : 10) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5); ctx.fillText('DOCK', f.x + 18 + (sm ? 64 : 76), f.y + head * .66);
+  ctx.font = '600 ' + (sm ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = ink; ctx.fillText((LANG === 'ja' ? 'あなたのEQ' : 'Your EQ') + '  ▾', f.x + (sm ? 130 : 170), f.y + head * .66);
+  // stopped, all the way through
+  ctx.textAlign = 'right'; ctx.font = '500 ' + (sm ? 10 : 11) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .55);
+  ctx.fillText('■ ' + (LANG === 'ja' ? '停止中' : 'STOPPED'), f.x + f.w - 18, f.y + head * .66);
+  ctx.restore();
+  // the curve, following the knob below
+  var n = .5 + .25 * eio(seg(t, .3, .75)), g = (n - .5) * 24;
+  // range 14: the tag above the peak clears the header
+  display({ x: f.x + 14, y: f.y + head, w: f.w - 28, h: top - head, range: sm ? 22 : 14, curve: mix(SH_FLAT, SH_DOCK, g / 6), alpha: a, tags: seg(t, .55, .7), tagSize: sm ? 12 : 14 });
+  // the EQ inside: its own panel and its own knob
+  ctx.save(); ctx.globalAlpha = a;
+  var py = f.y + top + 8, ph = f.h - top - 16;
+  ctx.fillStyle = '#e4e7ea'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(f.x + 14, py, f.w - 28, ph, 8) : ctx.rect(f.x + 14, py, f.w - 28, ph); ctx.fill();
+  ctx.strokeStyle = 'rgba(60,66,72,.14)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.textAlign = 'left'; ctx.font = '600 ' + (sm ? 10 : 12) + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, .5);
+  ctx.fillText(LANG === 'ja' ? 'あなたのEQの画面' : 'Your EQ’s own window', f.x + 30, py + 22);
+  ctx.restore();
+  ctx.save(); ctx.globalAlpha = a;
+  var R = Math.min(ph * .26, sm ? W * .1 : 64);
+  knob(f.x + f.w / 2, py + ph * .52, R, n, t);
+  ctx.restore();
+}
 // The last scene: a bell and its reflection shrink into the EQ Mirror mark.
 function bez(p0, p1, p2, p3, u){ var v = 1 - u; return v*v*v*p0 + 3*v*v*u*p1 + 3*v*u*u*p2 + u*u*u*p3; }
 function markPoints(){ var pts = []; for (var i = 0; i <= 60; i++){ var u = i / 60, x, y; if (u <= .5){ var q = u * 2; x = bez(0,4,6,10,q); y = bez(9,9,3,3,q); } else { var q2 = (u - .5) * 2; x = bez(10,14,16,20,q2); y = bez(3,3,7,7,q2); } pts.push([x, y]); } return pts; }
@@ -622,7 +672,7 @@ function sceneMirror(t, s){
   glow(top, COL.boost, lerp(2.4 * uiScale(W * .84), 4, m));
   ctx.save(); ctx.globalAlpha = lerp(.3, .38, m); path(bot); ctx.strokeStyle = rgba(COL.ink, .9); ctx.lineWidth = lerp(2.4 * uiScale(W * .84), 5, m); ctx.lineCap = 'round'; ctx.stroke(); ctx.restore();
 }
-var SCENES = [sceneSignal, sceneDial, sceneListeners, sceneDifference, sceneEvidence, sceneStereo, sceneNull, sceneMirror];
+var SCENES = [sceneSignal, sceneDial, sceneListeners, sceneDifference, sceneEvidence, sceneStereo, sceneNull, sceneDock, sceneMirror];
 
 /* ------------------------------------------------ kinetic captions */
 var caps = Array.prototype.slice.call(document.querySelectorAll('.cap')).map(function(el){
@@ -690,7 +740,7 @@ function frame(now){
   document.body.style.setProperty('--bar', bar + 'px');
   chNum.textContent = '0' + (ci + 1); chName.textContent = NAMES[ci];
   tickEls.forEach(function(el, i){ el.style.setProperty('--f', i < ci ? 1 : i === ci ? t : 0); });
-  var secs = p * 72, fr = Math.floor((secs % 1) * 24);
+  var secs = p * 81, fr = Math.floor((secs % 1) * 24);
   tc.textContent = '00:00:' + String(Math.floor(secs)).padStart(2, '0') + ':' + String(fr).padStart(2, '0');
   hint.style.opacity = 1 - seg(p, 0, .015);
   // once the film is over, the page below takes over and the stage dims
