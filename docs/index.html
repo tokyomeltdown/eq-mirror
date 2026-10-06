@@ -131,13 +131,13 @@ body.lang-ja .ja{word-break:keep-all;overflow-wrap:anywhere}
 .chips{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:30px}
 .chips span{font-size:14px;border:1px solid var(--line);border-radius:999px;padding:8px 15px;color:var(--sub)}
 .cta{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:36px}
-.note{max-width:620px;margin:28px auto 0;color:var(--muted);font-size:15px;line-height:1.7}
 .spec{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .spec div{padding:34px 28px;border-left:1px solid var(--line)}
 .spec div:first-child{border-left:0}
 .spec .t{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
 .spec .v{font-size:19px;font-weight:600;margin-top:10px;line-height:1.35}
 .spec .s{font-size:14px;color:var(--sub);margin-top:6px;line-height:1.55}
+.fine{margin-top:14px;font-size:12.5px;line-height:1.6;color:var(--muted)}
 footer{padding:40px 0 60px;color:var(--muted);font-size:13px}
 footer .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
 footer .links{display:flex;gap:22px;flex-wrap:wrap}
@@ -222,18 +222,22 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
   <p class="k">04 · dock</p>
   <h2><span class="blk en kin">Or just one,<br>with your EQ inside.</span><span class="blk ja kin">あるいは、<br>EQごと<wbr>1つに。</span></h2>
 </div>
-<div class="cap top" data-ch="4" data-a=".5" data-b="1">
+<div class="cap top" data-ch="4" data-a=".5" data-b=".9">
   <p class="k">04 · dock</p>
   <h2><span class="blk en kin">Turn a knob.<br>The curve follows.</span><span class="blk ja kin">ツマミを回せば、<br>カーブが<wbr>ついてくる。</span></h2>
   <p><span class="blk en">EQ Mirror Dock loads your AU or VST3 EQ and draws its curve as you turn it, even with the transport stopped. It comes with the same licence.</span><span class="blk ja">EQ Mirror Dock は、<wbr>AU / VST3 の<wbr>EQを<wbr>中に<wbr>読み込み、<wbr>回した<wbr>そばから<wbr>カーブを<wbr>描きます。<wbr>再生を<wbr>止めていても。<wbr>同じ<wbr>ライセンスで<wbr>使えます。</span></p>
 </div>
+<div class="cap top" data-ch="5" data-a="0" data-b=".2">
+  <p class="k">05 · evidence</p>
+  <h2><span class="blk en kin">Then we measured<br>some classics.</span><span class="blk ja kin">名機と<wbr>呼ばれる<wbr>EQを、<br>測ってみた。</span></h2>
+</div>
 <div class="cap top" data-ch="6" data-a="0" data-b="1">
-  <p class="k">05 · stereo</p>
+  <p class="k">06 · stereo</p>
   <h2><span class="blk en kin">Left and right.<br>Mid and side.</span><span class="blk ja kin">左右も、<br>M/S も。</span></h2>
   <p><span class="blk en">When the two sides are treated differently, the curve opens into a band and says which.</span><span class="blk ja">左右で<wbr>違う<wbr>処理を<wbr>すると、<wbr>カーブに<wbr>幅が<wbr>出て、<wbr>どちらの<wbr>処理かを<wbr>教えて<wbr>くれます。</span></p>
 </div>
 <div class="cap top" data-ch="7" data-a="0" data-b=".5">
-  <p class="k">06 · null</p>
+  <p class="k">07 · null</p>
   <h2><span class="blk en kin">With it. Without it.</span><span class="blk ja kin">挿した音と、<wbr>外した音。</span></h2>
 </div>
 <div class="cap top" data-ch="8" data-a=".35" data-b="1">
@@ -270,16 +274,16 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
         <a class="btn solid big" href="https://github.com/tokyomeltdown/eq-mirror/releases/latest/download/EQMirror.pkg"><span class="en">Try it free for 14 days</span><span class="ja">14日間無料で試す</span> →</a>
         <a class="btn ghost big" href="https://tokyomeltdown.gumroad.com/l/eqmirror" target="_blank" rel="noopener"><span class="en">Buy — $18</span><span class="ja">購入する — $18</span></a>
       </div>
-      <p class="note"><span class="blk en">The trial starts the first time you open EQ Mirror's window, not when your DAW scans it. When it ends, the curves stop showing and your audio keeps playing exactly as before.</span><span class="blk ja">トライアル期間は、<wbr>DAWが<wbr>スキャンした<wbr>ときでは<wbr>なく、<wbr>EQ Mirror の<wbr>画面を<wbr>初めて<wbr>開いた<wbr>ときから<wbr>始まります。<wbr>期間が<wbr>終わると<wbr>カーブは<wbr>表示されなく<wbr>なりますが、<wbr>音は<wbr>そのまま<wbr>出続けます。</span></p>
     </div>
   </section>
   <div class="wrap">
     <div class="spec">
-      <div><p class="t">Formats</p><p class="v"><span class="nw">AU · VST3 · AAX</span></p><p class="s"><span class="en">In any DAW that hosts these formats. The Dock loads AU and VST3 EQs</span><span class="ja">これらの<wbr>形式に<wbr>対応した<wbr>DAWで。<wbr>Dock に<wbr>入るのは<wbr>AU と<wbr>VST3 の<wbr>EQ</span></p></div>
+      <div><p class="t">Formats</p><p class="v"><span class="nw">AU · VST3 · AAX</span></p><p class="s"><span class="en">In any DAW that hosts these formats. The Dock loads AU and VST3 EQs*</span><span class="ja">これらの<wbr>形式に<wbr>対応した<wbr>DAWで。<wbr>Dock に<wbr>入るのは<wbr>AU と<wbr>VST3 の<wbr>EQ※</span></p></div>
       <div><p class="t">System</p><p class="v"><span class="nw">macOS 12+</span></p><p class="s"><span class="nw">Apple silicon</span> &amp; Intel<br><span class="en">Signed &amp; notarized</span><span class="ja">署名・公証済み</span></p></div>
       <div><p class="t"><span class="en">Your sound</span><span class="ja">音への影響</span></p><p class="v"><span class="en">Untouched</span><span class="ja">なし</span></p><p class="s"><span class="en">Bit-identical bounces, no added latency. The Dock sounds exactly like your EQ on its own</span><span class="ja">書き出しは<wbr>ビット単位で<wbr>一致、<wbr>レイテンシ0。<wbr>Dock の<wbr>音は<wbr>EQ<wbr>単体と<wbr>同じ</span></p></div>
       <div><p class="t"><span class="en">Privacy</span><span class="ja">プライバシー</span></p><p class="v"><span class="en">Offline</span><span class="ja">オフライン</span></p><p class="s"><span class="en">One request, once, to check your key</span><span class="ja">通信は<wbr>ライセンス<wbr>認証の<wbr>1回だけ</span></p></div>
     </div>
+    <p class="fine"><span class="en">* In Pro Tools, EQ Mirror Dock runs as AAX, and the EQ inside it runs as AU or VST3.</span><span class="ja">※ Pro Tools では、<wbr>EQ Mirror Dock は<wbr>AAX として<wbr>動き、<wbr>中の<wbr>EQ は<wbr>AU 版<wbr>または<wbr>VST3 版が<wbr>動きます。</span></p>
     <footer>
       <div class="row">
         <span class="brand"><span><b>EQ</b> <i>Mirror</i></span></span>
@@ -575,18 +579,20 @@ var BEATS = [
 var numEl = document.getElementById('num'), numCap = document.getElementById('numCap'), numWho = document.getElementById('numWho'), numWhat = document.getElementById('numWhat'), shownBeat = -1;
 function sceneEvidence(t, s, active){
   var r = small() ? { x: 16, y: H * .52, w: W - 32, h: H * .3 } : { x: W * .08, y: H * .46, w: W * .84, h: H * .38 };
-  var bt = t * 3, b = Math.min(2, Math.floor(bt)), bl = bt - b, morph = b > 0 ? eio(seg(bl, 0, .3)) : 1;
+  // A short opening first, while its caption is up: the line flat, the music
+  // back (the Dock's scene ends on it). The three beats follow.
+  var bt = seg(t, .22, 1) * 3, b = Math.min(2, Math.floor(bt)), bl = bt - b, morph = b > 0 ? eio(seg(bl, 0, .3)) : 1;
   var cur = b > 0 ? mix(BEATS[b - 1].c, BEATS[b].c, morph) : BEATS[0].c;
-  var a = eout(seg(t, 0, .06));
+  var a = eout(seg(t, .2, .3));
   aura(W * .7, r.y + r.h / 2, W * .4, BEATS[b].col, .03);
   display({ x: r.x, y: r.y, w: r.w, h: r.h, range: 7, curve: mix(SH_FLAT, cur, a), spec: spectrum(s * .7, 2 + b), specA: .6, tags: seg(bl, .3, .45), glow: BEATS[b].col, labels: !small(), bleed: W });
   if (!active) return;
   if (b !== shownBeat || NUMS_DIRTY){ shownBeat = b; NUMS_DIRTY = false; var B = BEATS[b], L = LANG === 'ja' ? 1 : 0;
     numEl.innerHTML = B.v + '<small>' + B.u + '</small>'; numEl.style.color = 'rgb(' + B.col + ')'; numWho.textContent = B.who[L]; numWhat.innerHTML = B.what[L]; }
   // the number rolls in with each beat
-  var inA = eout(seg(bl, .02, .22)), outA = b < 2 ? 1 - seg(bl, .9, 1) : 1;
+  var inA = t < .22 ? 0 : eout(seg(bl, .02, .22)), outA = b < 2 ? 1 - seg(bl, .9, 1) : 1;
   numEl.style.opacity = inA * outA; numEl.style.transform = 'translateY(' + ((1 - inA) * 40) + 'px)'; numEl.style.filter = 'blur(' + ((1 - inA) * 10) + 'px)';
-  numCap.style.opacity = eout(seg(bl, .12, .3)) * outA; numCap.style.transform = 'translateY(' + ((1 - eout(seg(bl, .12, .3))) * 20) + 'px)';
+  numCap.style.opacity = (t < .22 ? 0 : eout(seg(bl, .12, .3))) * outA; numCap.style.transform = 'translateY(' + ((1 - eout(seg(bl, .12, .3))) * 20) + 'px)';
 }
 function sceneStereo(t, s){
   var r = region(), open = eio(seg(t, .15, .55)) * (0.75 + .25 * Math.sin(s * 1.4)), c = curve([{ t:'bell', f:2400, g:3, q:.9 }, { t:'bell', f:160, g:-1.6, q:.8 }]), bnd = new Float32Array(N);
@@ -617,7 +623,10 @@ function rr(x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x,
 function mixCol(a, b, t){ return 'rgb(' + a.map(function(v, i){ return Math.round(lerp(v, b[i], t)); }).join(',') + ')'; }
 function sceneDock(t, s){
   var sm = small(), a = eout(seg(t, 0, .1));
-  var m = eio(seg(t, .06, .32)), o = eio(seg(t, .34, .56)), turn = eio(seg(t, .6, .86));
+  var m = eio(seg(t, .06, .32)), o = eio(seg(t, .34, .56)), turn = eio(seg(t, .6, .82));
+  // and at the end the window gives way: its curve settles back to flat and
+  // opens out to the next scene's full width, the music starting under it
+  var x = eio(seg(t, .86, 1));
   // where scene 02 left the three
   var y0 = sm ? H * .47 : H * .53, xs = [W * (sm ? .18 : .26), W * .5, W * (sm ? .82 : .74)], nw = sm ? W * .24 : 150, nh = sm ? 50 : 60;
   // where the window ends up, below the captions
@@ -635,7 +644,7 @@ function sceneDock(t, s){
   var ly0 = fr.y + fr.h / 2;
   ctx.save(); ctx.globalAlpha = a * (1 - o) * .8; ctx.strokeStyle = rgba(COL.ink, .3); ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.moveTo(0, ly0); ctx.lineTo(W, ly0); ctx.stroke(); ctx.restore();
-  ctx.save(); ctx.globalAlpha = a * m;
+  ctx.save(); ctx.globalAlpha = a * m * (1 - x);
   ctx.shadowColor = 'rgba(27,31,35,.2)'; ctx.shadowBlur = 44; ctx.shadowOffsetY = 18;
   rr(fr.x, fr.y, fr.w, fr.h, 14); ctx.fillStyle = '#f7f8f9'; ctx.fill();
   ctx.shadowColor = 'transparent'; ctx.strokeStyle = 'rgba(60,66,72,.2)'; ctx.lineWidth = 1; ctx.stroke();
@@ -650,7 +659,7 @@ function sceneDock(t, s){
   node(lerp(xs[2], W / 2 + nw * .55, m), y0, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの後ろ' : 'after', false, a * (1 - m));
   // the window's own furniture
   if (o > 0){
-    ctx.save(); ctx.globalAlpha = a * o;
+    ctx.save(); ctx.globalAlpha = a * o * (1 - x);
     ctx.textAlign = 'left'; ctx.font = '600 ' + (sm ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, 1);
     ctx.fillText((LANG === 'ja' ? 'あなたのEQ' : 'Your EQ') + '  ▾', fr.x + (sm ? 128 : 168), fr.y + head * .66);
     ctx.textAlign = 'right'; ctx.font = '500 ' + (sm ? 10 : 11) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .55);
@@ -658,14 +667,18 @@ function sceneDock(t, s){
     ctx.strokeStyle = rgba(COL.ink, .08); ctx.beginPath(); ctx.moveTo(fr.x, fr.y + head); ctx.lineTo(fr.x + fr.w, fr.y + head); ctx.stroke();
     ctx.restore();
     var n = .5 + .25 * turn;
-    display({ x: fr.x + 14, y: fr.y + head, w: fr.w - 28, h: fr.h * .48 - head, range: sm ? 22 : 14, curve: mix(SH_FLAT, SH_DOCK, (n - .5) * 4), alpha: a * o, tags: seg(t, .78, .9), tagSize: sm ? 12 : 14 });
+    var R = small() ? { x: 16, y: H * .52, w: W - 32, h: H * .3 } : { x: W * .08, y: H * .46, w: W * .84, h: H * .38 };
+    var D = { x: fr.x + 14, y: fr.y + head, w: fr.w - 28, h: fr.h * .48 - head };
+    display({ x: lerp(D.x, R.x, x), y: lerp(D.y, R.y, x), w: lerp(D.w, R.w, x), h: lerp(D.h, R.h, x), range: lerp(sm ? 22 : 14, 7, x),
+              curve: mix(SH_FLAT, SH_DOCK, (n - .5) * 4 * (1 - x)), alpha: a * o, tags: seg(t, .74, .84) * (1 - x), tagSize: sm ? 12 : 14,
+              spec: x > 0 ? spectrum(s * .7, 2) : null, specA: .6 * x, labels: x > .5 && !small(), bleed: W * x });
   }
   // the EQ: a dark card, then the light panel of its own window
   var card = { x: W / 2 - nw * .45, y: y0 - nh / 2, w: nw * .9, h: nh };
   // inside the window as it is now, so nothing arrives ahead of it
   var pan = { x: fr.x + 14, y: fr.y + fr.h * .48 + 6, w: fr.w - 28, h: fr.h * .52 - 20 };
   var e = { x: lerp(card.x, pan.x, o), y: lerp(card.y, pan.y, o), w: lerp(card.w, pan.w, o), h: lerp(card.h, pan.h, o) };
-  ctx.save(); ctx.globalAlpha = a;
+  ctx.save(); ctx.globalAlpha = a * (1 - x);
   ctx.shadowColor = 'rgba(27,31,35,' + (.18 * (1 - o)) + ')'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
   // dark to light quickly, early in the move, so it never sits in a muddy grey
   var oc = eio(seg(o, .05, .4));
@@ -675,14 +688,14 @@ function sceneDock(t, s){
   var lx = lerp(e.x + e.w / 2, e.x + 16, o), ly = lerp(e.y + e.h / 2 + 5, e.y + 22, o);
   var lt = oc > .5;
   ctx.textAlign = lt ? 'left' : 'center'; if (lt) lx = e.x + 16;
-  ctx.globalAlpha = a * (lt ? seg(oc, .5, 1) : 1 - seg(oc, 0, .5));
+  ctx.globalAlpha = a * (1 - x) * (lt ? seg(oc, .5, 1) : 1 - seg(oc, 0, .5));
   ctx.font = (lt ? '600 ' + (sm ? 10 : 12) : '700 ' + (sm ? 11 : 14)) + 'px ' + FONT;
   ctx.fillStyle = lt ? rgba(COL.ink, .5) : '#eceef0';
   ctx.fillText(lt ? (LANG === 'ja' ? 'あなたのEQの画面' : 'Your EQ’s own window') : (LANG === 'ja' ? 'あなたのEQ' : 'Your EQ'), lx, ly);
   ctx.restore();
   // and its knob, once the panel is there
   if (o > .6){
-    ctx.save(); ctx.globalAlpha = a * seg(o, .6, 1);
+    ctx.save(); ctx.globalAlpha = a * seg(o, .6, 1) * (1 - x);
     knob(pan.x + pan.w / 2, pan.y + pan.h * .5, Math.min(pan.h * .27, sm ? W * .1 : 62), .5 + .25 * turn, t);
     ctx.restore();
   }
