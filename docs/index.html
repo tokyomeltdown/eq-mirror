@@ -137,7 +137,7 @@ body.lang-ja .ja{word-break:keep-all;overflow-wrap:anywhere}
 .spec .t{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
 .spec .v{font-size:19px;font-weight:600;margin-top:10px;line-height:1.35}
 .spec .s{font-size:14px;color:var(--sub);margin-top:6px;line-height:1.55}
-.fine{margin-top:14px;font-size:12.5px;line-height:1.6;color:var(--muted)}
+.spec .fn{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
 footer{padding:40px 0 60px;color:var(--muted);font-size:13px}
 footer .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
 footer .links{display:flex;gap:22px;flex-wrap:wrap}
@@ -225,11 +225,11 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
 <div class="cap top" data-ch="4" data-a=".5" data-b=".9">
   <p class="k">04 · dock</p>
   <h2><span class="blk en kin">Turn a knob.<br>The curve follows.</span><span class="blk ja kin">ツマミを回せば、<br>カーブが<wbr>ついてくる。</span></h2>
-  <p><span class="blk en">EQ Mirror Dock loads your AU or VST3 EQ and draws its curve as you turn it, even with the transport stopped. It comes with the same licence.</span><span class="blk ja">EQ Mirror Dock は、<wbr>AU / VST3 の<wbr>EQを<wbr>中に<wbr>読み込み、<wbr>回した<wbr>そばから<wbr>カーブを<wbr>描きます。<wbr>再生を<wbr>止めていても。<wbr>同じ<wbr>ライセンスで<wbr>使えます。</span></p>
+  <p><span class="blk en">EQ Mirror Dock loads your AU or VST3 EQ and draws its curve as you turn it, even with the transport stopped. One licence covers both.</span><span class="blk ja">EQ Mirror Dock は、<wbr>AU / VST3 の<wbr>EQを<wbr>中に<wbr>読み込み、<wbr>再生を<wbr>止めていても、<wbr>回した<wbr>そばから<wbr>カーブを<wbr>描きます。<wbr>ライセンスは<wbr>EQ Mirror と<wbr>共通です。</span></p>
 </div>
 <div class="cap top" data-ch="5" data-a="0" data-b=".2">
   <p class="k">05 · evidence</p>
-  <h2><span class="blk en kin">Then we measured<br>some classics.</span><span class="blk ja kin">名機と<wbr>呼ばれる<wbr>EQを、<br>測ってみた。</span></h2>
+  <h2><span class="blk en kin">Three EQs,<br>measured.</span><span class="blk ja kin">3つのEQを、<br>実測する。</span></h2>
 </div>
 <div class="cap top" data-ch="6" data-a="0" data-b="1">
   <p class="k">06 · stereo</p>
@@ -278,12 +278,11 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
   </section>
   <div class="wrap">
     <div class="spec">
-      <div><p class="t">Formats</p><p class="v"><span class="nw">AU · VST3 · AAX</span></p><p class="s"><span class="en">In any DAW that hosts these formats. The Dock loads AU and VST3 EQs*</span><span class="ja">これらの<wbr>形式に<wbr>対応した<wbr>DAWで。<wbr>Dock に<wbr>入るのは<wbr>AU と<wbr>VST3 の<wbr>EQ※</span></p></div>
+      <div><p class="t">Formats</p><p class="v"><span class="nw">AU · VST3 · AAX</span></p><p class="s"><span class="en">In any DAW that hosts these formats.</span><span class="ja">これらの<wbr>形式に<wbr>対応した<wbr>DAWで。</span></p><p class="fn"><span class="en">* In the Dock’s AAX version, the EQ inside runs as AU or VST3.</span><span class="ja">※ Dock の<wbr>AAX 版では、<wbr>中のEQは<wbr>AU / VST3 版で<wbr>動きます。</span></p></div>
       <div><p class="t">System</p><p class="v"><span class="nw">macOS 12+</span></p><p class="s"><span class="nw">Apple silicon</span> &amp; Intel<br><span class="en">Signed &amp; notarized</span><span class="ja">署名・公証済み</span></p></div>
       <div><p class="t"><span class="en">Your sound</span><span class="ja">音への影響</span></p><p class="v"><span class="en">Untouched</span><span class="ja">なし</span></p><p class="s"><span class="en">Bit-identical bounces, no added latency. The Dock sounds exactly like your EQ on its own</span><span class="ja">書き出しは<wbr>ビット単位で<wbr>一致、<wbr>レイテンシ0。<wbr>Dock の<wbr>音は<wbr>EQ<wbr>単体と<wbr>同じ</span></p></div>
       <div><p class="t"><span class="en">Privacy</span><span class="ja">プライバシー</span></p><p class="v"><span class="en">Offline</span><span class="ja">オフライン</span></p><p class="s"><span class="en">One request, once, to check your key</span><span class="ja">通信は<wbr>ライセンス<wbr>認証の<wbr>1回だけ</span></p></div>
     </div>
-    <p class="fine"><span class="en">* In Pro Tools, EQ Mirror Dock runs as AAX, and the EQ inside it runs as AU or VST3.</span><span class="ja">※ Pro Tools では、<wbr>EQ Mirror Dock は<wbr>AAX として<wbr>動き、<wbr>中の<wbr>EQ は<wbr>AU 版<wbr>または<wbr>VST3 版が<wbr>動きます。</span></p>
     <footer>
       <div class="row">
         <span class="brand"><span><b>EQ</b> <i>Mirror</i></span></span>
