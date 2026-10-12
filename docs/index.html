@@ -63,7 +63,9 @@ body.lang-en .blk.en,body.lang-ja .blk.ja{display:block}
 /* ---------------- HUD ---------------- */
 .hud{position:fixed;z-index:10;left:0;right:0;pointer-events:none}
 .hud a,.hud button{pointer-events:auto}
-.hud.top{top:0;display:flex;justify-content:space-between;align-items:center;padding:18px 28px}
+.hud.top{top:0;display:flex;justify-content:space-between;align-items:center;padding:18px 28px;transition:background .3s,box-shadow .3s}
+/* after the film the page scrolls under the bar, so it gets the page's own ground */
+.hud.top.ground{background:rgba(236,238,240,.88);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line)}
 .brand{display:flex;align-items:center;gap:10px;font-size:16px;letter-spacing:-.01em}
 .brand b{font-weight:700}.brand i{font-style:normal;opacity:.7}
 .right{display:flex;align-items:center;gap:12px}
@@ -133,7 +135,7 @@ body.lang-ja .ja{word-break:keep-all;overflow-wrap:anywhere}
 .chips{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:30px}
 .chips>span{font-size:14px;border:1px solid var(--line);border-radius:999px;padding:8px 15px;color:var(--sub)}
 .cta{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:36px}
-.spec{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.spec{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .spec div{padding:34px 28px;border-left:1px solid var(--line)}
 .spec div:first-child{border-left:0}
 .spec .t{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
@@ -145,16 +147,23 @@ footer .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;a
 footer .links{display:flex;gap:22px;flex-wrap:wrap}
 footer a:hover{color:var(--ink)}
 footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-width:900px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:999px}
 
+/* four columns stop fitting "AU · VST3 · AAX" well before the phone layout */
+@media(max-width:1000px){
+  .spec{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .spec div:nth-child(3){border-left:0}
+  .spec div:nth-child(n+3){border-top:1px solid var(--line)}
+}
 @media(max-width:760px){
   .hud.top{padding:14px 16px}
-  .brand span{display:none}
+  .hud .brand span{display:none}
   .hud.bottom{padding:14px 16px;font-size:10px}
   .ticks i{width:12px}
   .cap.top{top:10vh}
-  .spec{grid-template-columns:1fr 1fr}
-  .spec div:nth-child(3){border-left:0}
-  .spec div{border-top:1px solid var(--line)}
+  .wrap{padding:0 16px}
+  .spec div{padding:26px 16px}
+  .spec .v{font-size:17px}
   .num{top:12vh}
   .num-cap{top:calc(12vh + 17vw)}
 }
@@ -185,7 +194,7 @@ footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-wi
   </div>
 </div>
 <div class="hud bottom" aria-hidden="true">
-  <div class="chap"><div><b id="chNum">01</b><span id="chName">SIGNAL</span></div><div class="ticks" id="ticks"></div></div>
+  <div class="chap"><div><b id="chNum">00</b><span id="chName">SIGNAL</span></div><div class="ticks" id="ticks"></div></div>
   <div class="tc"><span class="rec"></span><span id="tc">00:00:00:00</span></div>
 </div>
 <div class="scrollhint" id="hint"><span class="en">Scroll to play</span><span class="ja">スクロールで再生</span></div>
@@ -322,7 +331,7 @@ function setLang(l){
   document.getElementById('btn-en').classList.toggle('on', l === 'en');
   document.getElementById('btn-ja').classList.toggle('on', l === 'ja');
   try { localStorage.setItem('eqmirror-lang', l); } catch(e) {}
-  NUMS_DIRTY = true;
+  NUMS_DIRTY = true; wasStill = false;
 }
 var NUMS_DIRTY = true;
 document.getElementById('btn-en').onclick = function(){ setLang('en'); };
@@ -378,7 +387,7 @@ var SH_FLAT  = new Float32Array(N);
 
 /* ------------------------------------------------ canvas */
 var cv = document.getElementById('stage'), ctx = cv.getContext('2d'), W = 0, H = 0;
-function size(){ W = innerWidth; H = innerHeight; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR,0,0,DPR,0,0); }
+function size(){ W = innerWidth; H = innerHeight; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR,0,0,DPR,0,0); wasStill = false; }
 addEventListener('resize', size); size();
 
 function path(pts){ ctx.beginPath(); for (var i = 0; i < pts.length; i++){ if (i) ctx.lineTo(pts[i][0], pts[i][1]); else ctx.moveTo(pts[i][0], pts[i][1]); } }
@@ -442,10 +451,11 @@ function display(o){
         ctx.globalAlpha = a * o.tags;
         ctx.beginPath(); ctx.arc(px, py, 5, 0, 7); ctx.fillStyle = '#fbfbfc'; ctx.fill(); ctx.strokeStyle = rgba(col, 1); ctx.lineWidth = 2; ctx.stroke();
         ctx.textAlign = 'center'; ctx.fillStyle = rgba(col, 1); ctx.font = '600 ' + (o.tagSize || 16) + 'px ' + MONO;
-        var ty = t[1] > 0 ? py - 20 : py + 30;
+        // the level over the frequency, above a boost and below a cut, as the plug-in tags them
+        var ty = t[1] > 0 ? py - 29 : py + 30;
         ctx.fillText((v > 0 ? '+' : '−') + Math.abs(v).toFixed(1) + ' dB', clamp(px, x0 + 50, x0 + w - 50), ty);
         ctx.font = '400 11px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5);
-        ctx.fillText(f >= 1000 ? (f/1000).toFixed(2) + ' kHz' : Math.round(f) + ' Hz', clamp(px, x0 + 50, x0 + w - 50), ty + (t[1] > 0 ? -18 : 16));
+        ctx.fillText(f >= 1000 ? (f/1000).toFixed(2) + ' kHz' : Math.round(f) + ' Hz', clamp(px, x0 + 50, x0 + w - 50), ty + 16);
         ctx.globalAlpha = a;
       });
     }
@@ -512,7 +522,8 @@ function sceneDial(t, s){
   var R = sm ? W * .16 : Math.min(W, H) * .15, kx = sm ? W * .5 : W * .27, ky = sm ? H * .4 : H * .6;
   aura(kx, ky, R * 3, COL.boost, .03 + .03 * eio(seg(t, .08, .6)));
   knob(kx, ky, R, n, t);
-  var r = sm ? { x: 16, y: H * .7, w: W - 32, h: H * .22 } : { x: W * .47, y: H * .42, w: W * .46, h: H * .36 };
+  // low enough that the readouts above it clear the two-line caption
+  var r = sm ? { x: 16, y: H * .7, w: W - 32, h: H * .22 } : { x: W * .47, y: H * .47, w: W * .46, h: H * .33 };
   var measured = mix(SH_FLAT, SH_BELL, g / 6);
   display({ x: r.x, y: r.y, w: r.w, h: r.h, range: 9, curve: measured, spec: spectrum(s * .8, 1), specA: .7, tags: 0, blur: 24 });
   // dial vs measured readouts
@@ -600,7 +611,8 @@ function sceneEvidence(t, s, active){
   numCap.style.opacity = (t < .22 ? 0 : eout(seg(bl, .12, .3))) * outA; numCap.style.transform = 'translateY(' + ((1 - eout(seg(bl, .12, .3))) * 20) + 'px)';
 }
 function sceneStereo(t, s){
-  var r = region(), open = eio(seg(t, .15, .55)) * (0.75 + .25 * Math.sin(s * 1.4)), c = curve([{ t:'bell', f:2400, g:3, q:.9 }, { t:'bell', f:160, g:-1.6, q:.8 }]), bnd = new Float32Array(N);
+  // this caption has a line of text under it, so the display starts lower
+  var r = small() ? region() : { x: W * .08, y: H * .52, w: W * .84, h: H * .34 }, open = eio(seg(t, .15, .55)) * (0.75 + .25 * Math.sin(s * 1.4)), c = curve([{ t:'bell', f:2400, g:3, q:.9 }, { t:'bell', f:160, g:-1.6, q:.8 }]), bnd = new Float32Array(N);
   for (var i = 0; i < N; i++){ var lf = Math.log(FREQ[i] / 2400) / Math.LN2; bnd[i] = open * 4 * Math.exp(-lf * lf / 1.5); }
   display({ x: r.x, y: r.y, w: r.w, h: r.h, range: 9, curve: c, band: bnd, spec: spectrum(s * .6, 3), specA: .6, tags: 0, labels: !small(), glow: COL.cut, bleed: W });
   ctx.save(); ctx.globalAlpha = seg(t, .3, .5); ctx.textAlign = 'right'; ctx.font = '600 14px ' + MONO; ctx.fillStyle = rgba(COL.ink, .85); ctx.fillText('M / S', r.x + r.w, r.y - 12);
@@ -788,15 +800,21 @@ function drawCaps(ci, t){
 
 /* ------------------------------------------------ HUD */
 var ticks = document.getElementById('ticks'), chNum = document.getElementById('chNum'), chName = document.getElementById('chName'), tc = document.getElementById('tc'), hint = document.getElementById('hint');
+var hudTop = document.querySelector('.hud.top'), hudBottom = document.querySelector('.hud.bottom'), grainEl = document.getElementById('grain');
 for (var ti = 0; ti < CH; ti++) ticks.appendChild(document.createElement('i'));
 var tickEls = ticks.querySelectorAll('i');
 
 /* ------------------------------------------------ the loop */
-var film = document.getElementById('film'), cur = 0;
+var film = document.getElementById('film'), cur = 0, wasStill = false;
 function frame(now){
   NOW = now; if (!introT0) introT0 = now;
   var total = film.offsetHeight - innerHeight, target = clamp(scrollY / total, 0, 1.06);
   cur = (REDUCED) ? target : cur + (target - cur) * .1;
+  // once the page below has taken over and the last scene has settled, nothing
+  // on the stage moves: draw it once more, then leave it until the reader scrolls back
+  var over = seg(target, .985, 1.05), still = over >= 1 && cur >= 1;
+  if (still && wasStill){ requestAnimationFrame(frame); return; }
+  wasStill = still; grainEl.style.animationPlayState = still ? 'paused' : '';
   var p = clamp(cur, 0, 1), f = p * CH, ci = Math.min(CH - 1, Math.floor(f)), t = f - ci, s = REDUCED ? 4 : now / 1000;
   ctx.clearRect(0, 0, W, H);
   // crossfade: the outgoing scene lingers for a moment under the incoming one
@@ -809,13 +827,16 @@ function frame(now){
   // letterbox opens as the film starts; closes again at the end credits
   var bar = Math.max(0, 1 - eout((now - introT0) / 1400)) * H * .5;  // on the light stage the bars only open; closing them again reads as a dark smear
   document.body.style.setProperty('--bar', bar + 'px');
-  chNum.textContent = '0' + (ci + 1); chName.textContent = NAMES[ci];
+  // numbered as the captions are: the title is 00, the dial 01
+  chNum.textContent = '0' + ci; chName.textContent = NAMES[ci];
   tickEls.forEach(function(el, i){ el.style.setProperty('--f', i < ci ? 1 : i === ci ? t : 0); });
   var secs = p * 81, fr = Math.floor((secs % 1) * 24);
   tc.textContent = '00:00:' + String(Math.floor(secs)).padStart(2, '0') + ':' + String(fr).padStart(2, '0');
   hint.style.opacity = 1 - seg(p, 0, .015);
-  // once the film is over, the page below takes over and the stage dims
-  var over = seg(target, .985, 1.05); cv.style.opacity = 1 - over * .85;
+  // once the film is over, the page below takes over and the stage dims; the
+  // chapter and timecode go first, so they never sit on the price or the specs
+  cv.style.opacity = 1 - over * .85; hudBottom.style.opacity = 1 - seg(target, .985, 1.005);
+  hudTop.classList.toggle('ground', target > 1.005);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
