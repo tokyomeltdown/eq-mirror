@@ -831,9 +831,10 @@ function frame(now){
   NOW = now; if (!introT0) introT0 = now;
   var total = film.offsetHeight - innerHeight, target = clamp(scrollY / total, 0, 1.06);
   cur = (REDUCED) ? target : cur + (target - cur) * .1;
-  // once the page below has taken over and the last scene has settled, nothing
-  // on the stage moves: draw it once more, then leave it until the reader scrolls back
-  var over = seg(target, .985, 1.05), still = over >= 1 && cur >= 1;
+  // once the page below has taken over, the last scene has settled and the
+  // letterbox has opened, nothing on the stage moves: draw it once more, then
+  // leave it until the reader scrolls back
+  var over = seg(target, .985, 1.05), still = over >= 1 && cur >= 1 && now - introT0 > 1400;
   if (still && wasStill){ requestAnimationFrame(frame); return; }
   wasStill = still; grainEl.style.animationPlayState = still ? 'paused' : '';
   var p = clamp(cur, 0, 1), f = p * CH, ci = Math.min(CH - 1, Math.floor(f)), t = f - ci, s = REDUCED ? 4 : now / 1000;
