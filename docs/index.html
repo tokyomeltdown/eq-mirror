@@ -92,11 +92,13 @@ body.lang-en .blk.en,body.lang-ja .blk.ja{display:block}
 .cap.show{visibility:visible}
 .cap.top{top:12vh}
 .cap.mid{top:24vh}
+/* on a wide screen the title sits higher, so its line clears the waveform below */
+@media(min-width:761px){.cap.mid{top:16vh}}
 .cap .k{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:18px}
 .cap h1,.cap h2{font-weight:700;letter-spacing:-.045em;line-height:.98}
-.cap h1{font-size:clamp(46px,10.5vw,168px)}
+.cap h1{font-size:clamp(46px,min(10.5vw,17vh),168px)}
 .cap h2{font-size:clamp(32px,6vw,96px)}
-body.lang-ja .cap h1{letter-spacing:-.02em;line-height:1.08;font-size:clamp(40px,9vw,144px)}
+body.lang-ja .cap h1{letter-spacing:-.02em;line-height:1.08;font-size:clamp(40px,min(9vw,15vh),144px)}
 body.lang-ja .cap h2{letter-spacing:-.01em;line-height:1.15;font-size:clamp(28px,5vw,78px)}
 .cap p{margin:20px auto 0;max-width:760px;font-size:clamp(15px,1.6vw,19px);line-height:1.6;color:var(--sub)}
 .cap .warm{color:var(--boost)} .cap .cool{color:var(--cut)}
@@ -203,6 +205,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
 <div class="cap mid" data-ch="0" data-a="0" data-b=".62" id="title">
   <p class="k">EQ Mirror · AU / VST3 / AAX</p>
   <h1><span class="blk en kin">Analog,<br>made <span class="warm">visible.</span></span><span class="blk ja kin">アナログを、<br><span class="warm">可視化する。</span></span></h1>
+  <p><span class="blk en">See the curve your EQ is really applying.</span><span class="blk ja">EQが<wbr>実際に<wbr>かけている<wbr>カーブが、<wbr>見える。</span></p>
 </div>
 <div class="cap top" data-ch="1" data-a=".04" data-b=".5">
   <p class="k">01 · the dial</p>
@@ -476,8 +479,8 @@ var region = function(){ return small() ? { x: 16, y: H * .44, w: W - 32, h: H *
 // One clock for everything: the frame's own timestamp. The opening starts on the first frame drawn.
 var introT0 = 0, NOW = 0;
 function sceneSignal(t, s){
-  var intro = eout((NOW - introT0) / 1900), y = small() ? H * .7 : H * .68;
-  var len = W * .5 * Math.max(intro, 0.001), amp = H * .11 * eout((NOW - introT0 - 600) / 1600) * (1 - eio(seg(t, .55, .95)));
+  var intro = eout((NOW - introT0) / 1900), y = small() ? H * .7 : H * .74;
+  var len = W * .5 * Math.max(intro, 0.001), amp = H * (small() ? .11 : .09) * eout((NOW - introT0 - 600) / 1600) * (1 - eio(seg(t, .55, .95)));
   aura(W / 2, y, W * .45, COL.boost, .04 * intro); aura(W * .62, y + 40, W * .35, COL.cut, .035 * intro);
   // the 0 dB line, drawn out from the middle
   ctx.strokeStyle = rgba(COL.ink, .35); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(W / 2 - len, y); ctx.lineTo(W / 2 + len, y); ctx.stroke();
@@ -788,6 +791,9 @@ function drawCaps(ci, t){
     c.el.classList.toggle('show', on);
     if (!on){ c.el.style.opacity = 0; return; }
     var span = c.b - c.a, rin = seg(t, c.a, c.a + span * .45), rout = c.b >= 1 && ci === CH - 1 ? 0 : seg(t, c.b - span * .18, c.b);
+    // the title does not wait for a scroll: it comes up with the opening, so the
+    // first screen already says what this is
+    if (c.el.id === 'title') rin = Math.max(rin, REDUCED ? 1 : seg(NOW - introT0, 400, 1900));
     c.el.style.opacity = 1 - rout; c.el.style.transform = 'translateY(' + (-rout * 30) + 'px)';
     var vis = c.chars.filter(function(ch){ return ch.offsetParent !== null; }), n = vis.length || 1;
     vis.forEach(function(ch, i){
