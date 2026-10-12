@@ -37,7 +37,7 @@
 <script>document.documentElement.classList.add('js')</script>
 <style>
 :root{
-  --bg:#eceef0; --ink:#1b1f23; --sub:#646b73; --muted:#878e96; --line:rgba(60,66,72,.14);
+  --bg:#eceef0; --ink:#1b1f23; --sub:#646b73; --muted:#666d75; --line:rgba(60,66,72,.14);
   --boost:#c86a4f; --cut:#2f9088; --ease:cubic-bezier(.2,.8,.2,1);
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
 }
@@ -155,7 +155,7 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:13px}
 footer .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
 footer .links{display:flex;gap:22px;flex-wrap:wrap}
 footer a:hover{color:var(--ink)}
-footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:#9aa0a8;max-width:900px}
+footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:var(--muted);max-width:900px}
 a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:999px}
 
 /* four columns stop fitting "AU · VST3 · AAX" well before the phone layout */
@@ -340,7 +340,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
 var REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 var DPR = Math.min(devicePixelRatio || 1, 2);
 var LANG = 'en';
-var COL = { ink:'27,31,35', boost:'200,106,79', cut:'47,144,136', muted:'135,142,150' };
+var COL = { ink:'27,31,35', boost:'200,106,79', cut:'47,144,136', muted:'102,109,117' };
 var FONT = '-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans",sans-serif';
 var MONO = 'ui-monospace,"SF Mono",Menlo,monospace';
 
