@@ -129,8 +129,14 @@ body.lang-ja .ja{word-break:keep-all;overflow-wrap:anywhere}
 .after{position:relative;z-index:8;background:var(--bg)}
 .after::before{content:"";position:absolute;left:0;right:0;top:-40vh;height:40vh;background:linear-gradient(transparent,var(--bg));pointer-events:none}
 .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+/* an actual screenshot, between the film and the price */
+.real{padding:14vh 0 0;text-align:center}
+.real figure{max-width:880px;margin:28px auto 0}
+.real img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid rgba(60,66,72,.18);box-shadow:0 50px 100px -30px rgba(27,31,35,.35)}
+.real figcaption{margin:24px auto 0;max-width:720px;font-size:15px;line-height:1.6;color:var(--ink)}
+.real figcaption small{display:block;margin-top:6px;font-size:13px;color:var(--sub)}
 .buy{padding:12vh 0 10vh;text-align:center}
-.buy .k{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+.buy .k,.real .k{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
 .price{font-size:clamp(120px,22vw,300px);font-weight:700;letter-spacing:-.08em;line-height:.85;margin-top:24px;
   background:linear-gradient(100deg,#1b1f23 30%,#c86a4f 55%,#2f9088 80%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .price sup{font-size:.3em;vertical-align:1.6em;letter-spacing:0;-webkit-text-fill-color:var(--sub)}
@@ -277,6 +283,16 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
 
 <!-- ============================ after the film -->
 <div class="after">
+  <section class="real">
+    <div class="wrap">
+      <p class="k"><span class="en">Actual screenshot · EQ Mirror Dock</span><span class="ja">実際の画面 · EQ Mirror Dock</span></p>
+      <figure>
+        <img src="img/dock.jpg" width="1800" height="1194" loading="lazy" decoding="async" alt="EQ Mirror Dock with an EQ loaded: the curve the EQ applies on top, the EQ's own window below" data-alt-ja="EQを読み込んだ EQ Mirror Dock。上にEQがかけているカーブ、下にEQ自身の画面">
+        <figcaption><span class="en">Point at the curve to read the level and frequency at that spot.</span><span class="ja">カーブに<wbr>カーソルを<wbr>当てると、<wbr>その位置の<wbr>レベルと<wbr>周波数が<wbr>読めます。</span>
+          <small><span class="en">The EQ inside is a demo made for this page. Any AU or VST3 EQ with stereo in and out loads the same way.</span><span class="ja">中のEQは、<wbr>このページの<wbr>ために<wbr>作った<wbr>デモです。<wbr>ステレオ入出力の<wbr> AU / VST3 の<wbr>EQなら、<wbr>同じように<wbr>読み込めます。</span></small></figcaption>
+      </figure>
+    </div>
+  </section>
   <section class="buy">
     <div class="wrap">
       <p class="k"><span class="en">14 days, every feature, free</span><span class="ja">14日間、<wbr>すべての<wbr>機能を<wbr>無料で</span></p>
@@ -335,6 +351,7 @@ function setLang(l){
   document.getElementById('btn-ja').classList.toggle('on', l === 'ja');
   try { localStorage.setItem('eqmirror-lang', l); } catch(e) {}
   NUMS_DIRTY = true; wasStill = false;
+  document.querySelectorAll('img[data-alt-ja]').forEach(function(im){ if (!im.dataset.altEn) im.dataset.altEn = im.alt; im.alt = l === 'ja' ? im.dataset.altJa : im.dataset.altEn; });
 }
 var NUMS_DIRTY = true;
 document.getElementById('btn-en').onclick = function(){ setLang('en'); };
