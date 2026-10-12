@@ -97,9 +97,10 @@ body.lang-en .blk.en,body.lang-ja .blk.ja{display:block}
 .cap .k{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:18px}
 .cap h1,.cap h2{font-weight:700;letter-spacing:-.045em;line-height:.98}
 .cap h1{font-size:clamp(46px,min(10.5vw,17vh),168px)}
-.cap h2{font-size:clamp(32px,6vw,96px)}
+/* the scenes are laid out by height, so on a short, wide window the headings are held to it too */
+.cap h2{font-size:clamp(32px,min(6vw,9.7vh),96px)}
 body.lang-ja .cap h1{letter-spacing:-.02em;line-height:1.08;font-size:clamp(40px,min(9vw,15vh),144px)}
-body.lang-ja .cap h2{letter-spacing:-.01em;line-height:1.15;font-size:clamp(28px,5vw,78px)}
+body.lang-ja .cap h2{letter-spacing:-.01em;line-height:1.15;font-size:clamp(28px,min(5vw,8.5vh),78px)}
 .cap p{margin:20px auto 0;max-width:760px;font-size:clamp(15px,1.6vw,19px);line-height:1.6;color:var(--sub)}
 .cap .warm{color:var(--boost)} .cap .cool{color:var(--cut)}
 .dockname h2,body.lang-ja .dockname h2{font-size:clamp(46px,9.5vw,152px);letter-spacing:-.045em;line-height:1;margin-top:clamp(20px,7vh,72px)}
@@ -576,8 +577,11 @@ function sceneListeners(t, s){
   // they find each other, and line up
   var link = seg(t, .52, .62);
   if (link > 0){
+    // the arc's top stays under the caption's line of text: on a short window it flattens
+    var capP = document.querySelector('.cap[data-ch="2"] p:not(.k)'), arc = 64;
+    if (capP && !sm) arc = clamp(2 * (y - nh / 2 - 15 - capP.getBoundingClientRect().bottom), 20, 64);
     ctx.save(); ctx.globalAlpha = link; ctx.setLineDash([4, 7]); ctx.lineDashOffset = -s * 40; ctx.strokeStyle = rgba(COL.cut, .9); ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(xs[0], y - nh / 2 - 6); ctx.quadraticCurveTo(xs[1], y - nh / 2 - (sm ? 44 : 64), xs[2], y - nh / 2 - 6); ctx.stroke(); ctx.restore();
+    ctx.beginPath(); ctx.moveTo(xs[0], y - nh / 2 - 6); ctx.quadraticCurveTo(xs[1], y - nh / 2 - (sm ? 44 : arc), xs[2], y - nh / 2 - 6); ctx.stroke(); ctx.restore();
     var al = eio(seg(t, .64, .9)), sy = y + (sm ? 110 : 150), sw = sm ? W * .8 : W * .44, sx = W / 2 - sw / 2, off = lerp(sw * .3, 0, al);
     [[rgba(COL.ink, .3), 0], ['#2b3238', off]].forEach(function(r, n){
       var pts = []; for (var xx = 0; xx <= sw; xx += 2){ var tx = xx - r[1], env = Math.exp(-Math.pow((tx - sw * .45) / (sw * .13), 2)); pts.push([sx + xx, sy + Math.sin(tx * .06) * env * (sm ? 24 : 38)]); }
