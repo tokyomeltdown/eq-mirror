@@ -92,7 +92,7 @@ body.lang-en .blk.en,body.lang-ja .blk.ja{display:block}
 .cap.show{visibility:visible}
 .cap.top{top:12vh}
 .cap.mid{top:24vh}
-/* on a wide screen the title sits higher, so its line clears the waveform below */
+/* on a wide screen the title sits higher, clear of the waveform below */
 @media(min-width:761px){.cap.mid{top:16vh}}
 .cap .k{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:18px}
 .cap h1,.cap h2{font-weight:700;letter-spacing:-.045em;line-height:.98}
@@ -134,7 +134,6 @@ body.lang-ja .ja{word-break:keep-all;overflow-wrap:anywhere}
 .real figure{max-width:880px;margin:28px auto 0}
 .real img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid rgba(60,66,72,.18);box-shadow:0 50px 100px -30px rgba(27,31,35,.35)}
 .real figcaption{margin:24px auto 0;max-width:720px;font-size:15px;line-height:1.6;color:var(--ink)}
-.real figcaption small{display:block;margin-top:6px;font-size:13px;color:var(--sub)}
 .buy{padding:12vh 0 10vh;text-align:center}
 .buy .k,.real .k{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
 .price{font-size:clamp(120px,22vw,300px);font-weight:700;letter-spacing:-.08em;line-height:.85;margin-top:24px;
@@ -212,7 +211,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
 <div class="cap mid" data-ch="0" data-a="0" data-b=".62" id="title">
   <p class="k">EQ Mirror · AU / VST3 / AAX</p>
   <h1><span class="blk en kin">Analog,<br>made <span class="warm">visible.</span></span><span class="blk ja kin">アナログを、<br><span class="warm">可視化する。</span></span></h1>
-  <p><span class="blk en">See the curve your EQ is really applying.</span><span class="blk ja">EQが<wbr>実際に<wbr>かけている<wbr>カーブが、<wbr>見える。</span></p>
 </div>
 <div class="cap top" data-ch="1" data-a=".04" data-b=".5">
   <p class="k">01 · the dial</p>
@@ -286,11 +284,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
 <div class="after">
   <section class="real">
     <div class="wrap">
-      <p class="k"><span class="en">Actual screenshot · EQ Mirror Dock</span><span class="ja">実際の画面 · EQ Mirror Dock</span></p>
+      <p class="k">EQ Mirror Dock</p>
       <figure>
         <img src="img/dock.jpg" width="1800" height="1194" loading="lazy" decoding="async" alt="EQ Mirror Dock with an EQ loaded: the curve the EQ applies on top, the EQ's own window below" data-alt-ja="EQを読み込んだ EQ Mirror Dock。上にEQがかけているカーブ、下にEQ自身の画面">
-        <figcaption><span class="en">Point at the curve to read the level and frequency at that spot.</span><span class="ja">カーブに<wbr>カーソルを<wbr>当てると、<wbr>その位置の<wbr>レベルと<wbr>周波数が<wbr>読めます。</span>
-          <small><span class="en">The EQ inside is a demo made for this page. Any AU or VST3 EQ with stereo in and out loads the same way.</span><span class="ja">中のEQは、<wbr>このページの<wbr>ために<wbr>作った<wbr>デモです。<wbr>ステレオ入出力の<wbr> AU / VST3 の<wbr>EQなら、<wbr>同じように<wbr>読み込めます。</span></small></figcaption>
+        <figcaption><span class="en">Point at the curve to read the level and frequency at that spot.</span><span class="ja">カーブに<wbr>カーソルを<wbr>当てると、<wbr>その位置の<wbr>レベルと<wbr>周波数が<wbr>読めます。</span></figcaption>
       </figure>
     </div>
   </section>
