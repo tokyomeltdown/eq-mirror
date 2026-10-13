@@ -81,6 +81,8 @@ def render(blocks):
 
 def main():
     lines = SOURCE.read_text(encoding="utf-8").splitlines()
+    # The version line at the top of the source, e.g. "**Version 2.0 — 2026-10-05**".
+    ver, date = re.search(r"^\*\*Version ([\d.]+) — (\d{4}-\d{2}-\d{2})\*\*", "\n".join(lines), re.M).groups()
     _, en = sections(part(lines, "# English"))
     ja_head, ja = sections(part(lines, "# 日本語"))
     assert [n for n, _, _ in en] == [n for n, _, _ in ja], "the two languages must have the same sections"
@@ -108,7 +110,7 @@ def main():
 </section>""")
 
     ja_note = render(ja_head)
-    page = TEMPLATE.replace("{{BODY}}", "\n\n".join(body)).replace("{{JA_NOTE}}", ja_note)
+    page = TEMPLATE.replace("{{BODY}}", "\n\n".join(body)).replace("{{JA_NOTE}}", ja_note).replace("{{VERSION}}", ver).replace("{{DATE}}", date)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(page, encoding="utf-8")
     shutil.copyfile(NOTICES, OUT.parent / "THIRD_PARTY_NOTICES.txt")
@@ -194,7 +196,7 @@ TEMPLATE = """<!DOCTYPE html>
 
 <header><div class="wrap">
   <h1><span class="en">End User License Agreement</span><span class="ja">使用許諾契約</span></h1>
-  <p class="meta">EQ MIRROR · VERSION 1.0 · 2026-09-27</p>
+  <p class="meta">EQ MIRROR · VERSION {{VERSION}} · {{DATE}}</p>
   <div class="ja jnote">{{JA_NOTE}}</div>
 </div></header>
 
