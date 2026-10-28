@@ -6,17 +6,16 @@
 <title>EQ Mirror — Analog, made visible.</title>
 <meta name="description" content="EQ Mirror shows the curve your EQ is actually applying: one instance before your EQ and one after, or your EQ inside EQ Mirror Dock. AU, VST3 and AAX for macOS. $18.">
 <meta name="theme-color" content="#eceef0">
-<meta name="color-scheme" content="light">
 <link rel="canonical" href="https://tokyomeltdown.github.io/eq-mirror/">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
 <meta property="og:title" content="EQ Mirror — Analog, made visible.">
-<meta property="og:description" content="One EQ Mirror before your EQ, one after, and you see the curve it is really applying. Or put your EQ inside EQ Mirror Dock. AU, VST3 and AAX for macOS.">
+<meta property="og:description" content="One EQ Mirror before your EQ, one after, and you see the curve it is really applying. Or put your EQ inside EQ Mirror Dock.">
 <meta property="og:url" content="https://tokyomeltdown.github.io/eq-mirror/">
 <meta property="og:image" content="https://tokyomeltdown.github.io/eq-mirror/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="EQ Mirror — Analog, made visible.">
+<meta property="og:image:alt" content="EQ Mirror">
 <meta property="og:site_name" content="tokyomeltdown">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="EQ Mirror — Analog, made visible.">
@@ -24,850 +23,710 @@
 <meta name="twitter:image" content="https://tokyomeltdown.github.io/eq-mirror/og-image.png">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icon.png" type="image/png">
-<!--
-  Concept: the whole page is one short film, scrubbed by scrolling. A single
-  line -- the 0 dB line -- runs through every scene and becomes each thing in
-  turn: a waveform, a bell under a turning knob, two signals lining up, the
-  difference between them, three measured curves, a mid/side band, a null,
-  an EQ held inside the Dock, and finally the EQ Mirror mark itself.
-
-  Nothing is loaded from anywhere else. A product that talks to nobody gets a
-  page that talks to nobody.
--->
-<script>document.documentElement.classList.add('js')</script>
 <style>
+/* The same family as the hub and LUFSBar Pro: hairline grid, small spaced-out
+   mono labels, plain buttons. The ground is light because the plug-in is.
+   The two accents are the plug-in's own: terracotta for boost, teal for cut. */
 :root{
-  --bg:#eceef0; --ink:#1b1f23; --sub:#646b73; --muted:#666d75; --line:rgba(60,66,72,.14);
-  --boost:#c86a4f; --cut:#2f9088; --ease:cubic-bezier(.2,.8,.2,1);
+  --bg:#eceef0; --ink:#1b1f23; --sub:#4f565e; --muted:#666d75; --line:rgba(60,66,72,.14); --grid:rgba(60,66,72,.05);
+  --boost:#c86a4f; --cut:#2f9088; --boostText:#a8543c; --cutText:#237a73;
+  --panel:#eceef0; --curve:#2b3238;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;background:var(--bg)}
-body{background:var(--bg);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Hiragino Sans","Noto Sans JP",sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Hiragino Sans","Noto Sans JP",sans-serif;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:48px 48px;background-position:-1px -1px}
 a{color:inherit;text-decoration:none}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+
+/* Every string is present twice; one class on <body> picks the language. */
 .en,.ja{display:none}
 body.lang-en .en{display:initial} body.lang-ja .ja{display:initial}
-body.lang-en .blk.en,body.lang-ja .blk.ja{display:block}
 
-/* ---------------- the stage: one canvas behind everything ---------------- */
-#stage{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:0}
-.grain{position:fixed;inset:-50%;z-index:3;pointer-events:none;opacity:.06;mix-blend-mode:multiply;animation:grain .9s steps(6) infinite}
-@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
-.vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
-  background:radial-gradient(120% 90% at 50% 50%,transparent 60%,rgba(60,66,72,.16) 100%)}
-/* letterbox bars that close in at the very start, like a film opening */
-.bars::before,.bars::after{content:"";position:fixed;left:0;right:0;height:var(--bar,0px);background:#1b1f23;z-index:4;pointer-events:none}
-.bars::before{top:0}.bars::after{bottom:0}
+.k{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
 
-/* ---------------- HUD ---------------- */
-.hud{position:fixed;z-index:10;left:0;right:0;pointer-events:none}
-.hud a,.hud button{pointer-events:auto}
-.hud.top{top:0;display:flex;justify-content:space-between;align-items:center;padding:18px 28px;transition:background .3s,box-shadow .3s}
-/* after the film the page scrolls under the bar, so it gets the page's own ground */
-.hud.top.ground{background:rgba(236,238,240,.88);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line)}
-.brand{display:flex;align-items:center;gap:10px;font-size:16px;letter-spacing:-.01em}
-.brand b{font-weight:700}.brand i{font-style:normal;opacity:.7}
+/* ---------------- top bar ---------------- */
+.top{position:sticky;top:0;z-index:20;background:rgba(236,238,240,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line)}
+.top .inner{max-width:1040px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:-.01em}
+.brand b{font-weight:700}
 .right{display:flex;align-items:center;gap:12px}
 .lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
 .lang button{background:none;border:0;color:var(--muted);font:inherit;font-size:12px;padding:5px 11px;cursor:pointer}
 .lang button.on{background:var(--ink);color:var(--bg);font-weight:600}
-.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;font-weight:600;font-size:14px;padding:10px 20px;white-space:nowrap;transition:transform .3s var(--ease),background .3s,box-shadow .3s}
-.btn.solid{background:var(--ink);color:var(--bg);box-shadow:0 0 0 0 rgba(232,135,106,0)}
-.btn.solid:hover{box-shadow:0 12px 36px -8px rgba(200,106,79,.55)}
-.btn.ghost{border:1px solid rgba(60,66,72,.25);color:var(--ink);background:rgba(255,255,255,.35)}
-.btn.ghost:hover{background:rgba(255,255,255,.8)}
-.btn.big{padding:17px 32px;font-size:17px}
-.hud.bottom{bottom:0;display:flex;justify-content:space-between;align-items:flex-end;padding:18px 28px;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--muted)}
-.chap b{color:var(--ink);font-weight:500;margin-right:10px}
-.ticks{display:flex;gap:4px;margin-top:9px}
-.ticks i{display:block;width:22px;height:2px;background:rgba(60,66,72,.15);position:relative;overflow:hidden}
-.ticks i::after{content:"";position:absolute;inset:0;background:var(--ink);transform-origin:0 50%;transform:scaleX(var(--f,0))}
-.tc{text-align:right}
-.tc .rec{display:inline-block;width:7px;height:7px;border-radius:50%;background:#e2543f;margin-right:8px;vertical-align:1px;animation:rec 1.2s steps(2) infinite}
-@keyframes rec{50%{opacity:.15}}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;font-weight:600;font-size:14px;padding:10px 20px;white-space:nowrap;transition:background .3s,box-shadow .3s}
+.btn.solid{background:var(--ink);color:var(--bg)}
+.btn.solid:hover{box-shadow:0 12px 36px -12px rgba(200,106,79,.6)}
+.btn.ghost{border:1px solid rgba(27,31,35,.28);color:var(--ink)}
+.btn.ghost:hover{background:rgba(27,31,35,.05)}
+.btn.big{font-size:16px;padding:14px 26px}
 
-/* ---------------- captions: fixed, scrubbed by scroll ---------------- */
-.cap{position:fixed;z-index:6;left:0;right:0;pointer-events:none;text-align:center;padding:0 24px;opacity:0;visibility:hidden}
-.cap.show{visibility:visible}
-.cap.top{top:12vh}
-.cap.mid{top:24vh}
-/* on a wide screen the title sits higher, clear of the waveform below */
-@media(min-width:761px){.cap.mid{top:16vh}}
-.cap .k{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:18px}
-.cap h1,.cap h2{font-weight:700;letter-spacing:-.045em;line-height:.98}
-.cap h1{font-size:clamp(46px,min(10.5vw,17vh),168px)}
-/* the scenes are laid out by height, so on a short, wide window the headings are held to it too */
-.cap h2{font-size:clamp(32px,min(6vw,9.7vh),96px)}
-body.lang-ja .cap h1{letter-spacing:-.02em;line-height:1.08;font-size:clamp(40px,min(9vw,15vh),144px)}
-body.lang-ja .cap h2{letter-spacing:-.01em;line-height:1.15;font-size:clamp(28px,min(5vw,8.5vh),78px)}
-.cap p{margin:20px auto 0;max-width:760px;font-size:clamp(15px,1.6vw,19px);line-height:1.6;color:var(--sub)}
-.cap .warm{color:var(--boost)} .cap .cool{color:var(--cut)}
-.dockname h2,body.lang-ja .dockname h2{font-size:clamp(46px,9.5vw,152px);letter-spacing:-.045em;line-height:1;margin-top:clamp(20px,7vh,72px)}
-.dockname h2 b{font-weight:700} .dockname h2 i{font-style:normal;font-weight:300;opacity:.72}
-.c{display:inline-block;will-change:transform,opacity,filter}
-.sp{display:inline-block;width:.28em}
-.ph{display:inline-block;white-space:nowrap}
-.nw{white-space:nowrap}
-/* Japanese breaks only where the markup says it may (<wbr>, between phrases). */
-body.lang-ja .ja{word-break:keep-all;overflow-wrap:anywhere}
-/* the big numbers of the evidence scene */
-.num{position:fixed;z-index:6;left:6vw;top:15vh;pointer-events:none;opacity:0;font-family:var(--mono);font-weight:500;
-  font-size:clamp(56px,11vw,190px);letter-spacing:-.06em;line-height:1;font-variant-numeric:tabular-nums}
-.num small{font-size:.32em;letter-spacing:0;margin-left:.2em;color:var(--sub)}
-.num-cap{position:fixed;z-index:6;left:6vw;top:calc(15vh + clamp(64px,12vw,200px));pointer-events:none;opacity:0;max-width:min(720px,88vw)}
-.num-cap .who{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.num-cap .what{word-break:keep-all;overflow-wrap:anywhere;font-size:clamp(20px,2.4vw,34px);font-weight:650;letter-spacing:-.02em;margin-top:8px;line-height:1.2}
-.zero{position:fixed;z-index:6;left:50%;top:50%;transform:translate(-50%,-58%);pointer-events:none;opacity:0;text-align:center}
-.zero .z{font-size:clamp(160px,34vw,520px);font-weight:700;letter-spacing:-.08em;line-height:.8;color:var(--ink)}
-.zero .zl{font-family:var(--mono);font-size:13px;letter-spacing:.24em;color:var(--sub);text-transform:uppercase;margin-top:10px}
-.scrollhint{position:fixed;z-index:6;left:50%;bottom:74px;transform:translateX(-50%);font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--muted);text-transform:uppercase}
-.scrollhint::after{content:"";display:block;width:1px;height:34px;margin:12px auto 0;background:linear-gradient(var(--ink),transparent);animation:drip 1.8s var(--ease) infinite;transform-origin:top}
-@keyframes drip{0%{transform:scaleY(0)}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
+/* ---------------- hero ---------------- */
+.hero{padding:96px 0 40px}
+.hero h1{font-size:clamp(38px,6.6vw,72px);line-height:1.02;font-weight:700;letter-spacing:-.035em;margin:18px 0 20px}
+body.lang-ja .hero h1{font-size:clamp(32px,5.6vw,60px);line-height:1.14;letter-spacing:-.01em}
+.hero p.lede{color:var(--sub);font-size:clamp(17px,2vw,20px);max-width:34em}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.fine{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--muted);margin-top:16px}
 
-/* ---------------- the film's length, then ordinary pages ---------------- */
-#film{height:1125vh;position:relative;z-index:1}
-.after{position:relative;z-index:8;background:var(--bg)}
-.after::before{content:"";position:absolute;left:0;right:0;top:-40vh;height:40vh;background:linear-gradient(transparent,var(--bg));pointer-events:none}
-.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
-/* an actual screenshot, between the film and the price */
-.real{padding:14vh 0 0;text-align:center}
-.real figure{max-width:880px;margin:28px auto 0}
-.real img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid rgba(60,66,72,.18);box-shadow:0 50px 100px -30px rgba(27,31,35,.35)}
-.real figcaption{margin:24px auto 0;max-width:720px;font-size:15px;line-height:1.6;color:var(--ink)}
-.real figcaption small{display:block;margin-top:6px;font-size:13px;color:var(--sub)}
-.buy{padding:12vh 0 10vh;text-align:center}
-.buy .k,.real .k{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
-.price{font-size:clamp(120px,22vw,300px);font-weight:700;letter-spacing:-.08em;line-height:.85;margin-top:24px;
-  background:linear-gradient(100deg,#1b1f23 30%,#c86a4f 55%,#2f9088 80%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.price sup{font-size:.3em;vertical-align:1.6em;letter-spacing:0;-webkit-text-fill-color:var(--sub)}
-.chips{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:30px}
-.chips>span{font-size:14px;border:1px solid var(--line);border-radius:999px;padding:8px 15px;color:var(--sub)}
-.cta{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:36px}
-.cta-note{margin-top:18px;font-size:14px;color:var(--sub)}
-.spec{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.spec div{padding:34px 28px;border-left:1px solid var(--line)}
-.spec div:first-child{border-left:0}
-.spec .t{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-.spec .v{font-size:19px;font-weight:600;margin-top:10px;line-height:1.35}
-.spec .s{font-size:14px;color:var(--sub);margin-top:6px;line-height:1.55}
-.spec .fn{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
-footer{padding:40px 0 60px;color:var(--muted);font-size:13px}
-footer .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
-footer .links{display:flex;gap:22px;flex-wrap:wrap}
+/* ---------------- the demo: the plug-in drawn, with the demo EQ's knobs ---------------- */
+.demo{margin:64px 0 0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;background:rgba(255,255,255,.35)}
+.seg button{background:none;border:0;font:inherit;font-size:13px;color:var(--muted);padding:7px 16px;border-radius:999px;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--bg);font-weight:600}
+/* What the DAW's inserts look like in each case: three slots, or one. */
+.inserts{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 14px;min-height:34px}
+.inserts .k{margin-right:4px}
+.slots{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.slot{font-size:12.5px;padding:6px 12px;border-radius:7px;background:rgba(255,255,255,.55);border:1px solid rgba(27,31,35,.14);color:var(--sub);white-space:nowrap}
+.slot.me{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:600}
+.slot .in{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:5px;background:rgba(236,238,240,.16);color:#d5d9dd;font-weight:500;font-size:11.5px}
+.arr{color:var(--muted);font-family:var(--mono);font-size:12px}
+.inserts .say2{font-size:13px;color:var(--muted);margin-left:auto}
+.stage{position:relative}
+.win{border-radius:12px;overflow:hidden;box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 24px 60px -30px rgba(27,31,35,.45),0 0 0 1px rgba(27,31,35,.10);background:var(--panel)}
+/* A plain window title bar, the same for any host. */
+.tbar{position:relative;height:26px;display:flex;align-items:center;padding:0 12px;gap:6px;background:#dde0e3;border-bottom:1px solid rgba(27,31,35,.08)}
+.tbar i{width:9px;height:9px;border-radius:50%;background:rgba(27,31,35,.18)}
+.tbar span{position:absolute;left:0;right:0;text-align:center;font-size:11.5px;color:#5d646c;pointer-events:none}
+.tbar.dark{background:#1b1e22;border-bottom-color:rgba(255,255,255,.06)}
+.tbar.dark i{background:rgba(255,255,255,.18)}
+.tbar.dark span{color:#9aa0a7}
+.ph{display:flex;align-items:center;gap:12px;height:40px;padding:0 16px;font-size:13px;color:#3c4248;background:var(--panel)}
+.ph .logo{display:flex;align-items:center;gap:7px}
+.ph .logo b{font-weight:700}
+.ph .dock{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:#878e96}
+.ph .sep{width:1px;height:16px;background:rgba(60,66,72,.25)}
+.ph .eq{font-weight:600}
+.ph .vendor{color:#878e96;font-size:12px}
+.ph .status{margin-left:auto;font-size:11.5px;color:#878e96}
+.plot{position:relative;aspect-ratio:2.7/1;background:var(--panel)}
+.plot canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+/* EQ Mirror (the pair): the EQ is a window of its own, set apart and to the
+   side. The Dock: one window, the EQ in its lower half. */
+.stage.pair .gap{height:18px}
+.stage.pair .eqwin{width:84%;margin-left:8%;box-shadow:0 30px 70px -28px rgba(27,31,35,.6),0 0 0 1px rgba(27,31,35,.18)}
+.stage.dock .gap{height:0}
+/* The same height either way (the pair's gap and second title bar), so the
+   page does not jump when switching. */
+.stage.dock{padding-bottom:44px}
+.stage.dock .eqwin{border-top-left-radius:0;border-top-right-radius:0;box-shadow:0 24px 60px -30px rgba(27,31,35,.45),0 0 0 1px rgba(27,31,35,.10)}
+.stage.dock .mirror{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.stage.dock .only-pair,.stage.pair .only-dock{display:none}
+
+/* The demo EQ, drawn after its own window: a dark panel with four knobs. */
+.eqwin{background:linear-gradient(#2c3036,#24272c);color:#e9ebee}
+.eqbody{padding:18px 28px 22px}
+.eqhead{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.12)}
+.eqhead .t{font-size:15px;font-weight:600;letter-spacing:.24em}
+.eqhead .v{font-size:9.5px;letter-spacing:.3em;color:#9aa0a7;display:flex;align-items:center;gap:10px}
+.eqhead .v i{width:7px;height:7px;border-radius:50%;background:#f0a04b;box-shadow:0 0 8px rgba(240,160,75,.8)}
+.knobs{display:grid;grid-template-columns:1fr 1px 2fr 1px 1fr;align-items:start;padding-top:12px}
+.knobs .rule{background:rgba(255,255,255,.1);height:100%;min-height:120px}
+.pairk{display:grid;grid-template-columns:1fr 1fr}
+.knob{display:flex;flex-direction:column;align-items:center;user-select:none;-webkit-user-select:none}
+.knob svg{width:112px;height:104px;overflow:visible;touch-action:none;cursor:ns-resize;outline:none}
+.knob svg:focus-visible .cap{stroke:#f0a04b;stroke-width:2}
+.knob .name{font-size:12px;font-weight:700;letter-spacing:.24em;margin-top:2px}
+.knob .name.small{font-weight:500;font-size:10px;color:#9aa0a7}
+.knob .val{font-family:var(--mono);font-size:11px;color:#f0a04b;height:14px;opacity:0;transition:opacity .2s}
+.knob.active .val{opacity:1}
+.midlabel{grid-column:1/-1;text-align:center;font-size:12px;font-weight:700;letter-spacing:.24em;margin-top:2px;position:relative}
+.midlabel::before,.midlabel::after{content:"";position:absolute;top:50%;width:30%;border-top:1px solid rgba(255,255,255,.25)}
+.midlabel::before{left:8%} .midlabel::after{right:8%}
+.hint{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);white-space:nowrap;transition:opacity .3s;animation:nudge 1.8s var(--ease) infinite}
+.demo.used .hint{opacity:0}
+@keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.demo .say{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:14px}
+
+/* Real screenshots, under the drawing. */
+.shots{display:grid;grid-template-columns:1.966fr 1.502fr;gap:20px;margin-top:56px;align-items:start}
+.shots figure img{width:100%;height:auto;display:block;border-radius:10px;box-shadow:0 0 0 1px rgba(27,31,35,.10),0 18px 40px -26px rgba(27,31,35,.5)}
+.shots figcaption{margin-top:10px}
+.shots .note{grid-column:1/-1;color:var(--muted);font-size:12.5px;margin-top:-6px}
+
+/* ---------------- three things ---------------- */
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:96px}
+.three>div{padding:28px 24px 30px 0}
+.three>div+div{padding-left:24px;border-left:1px solid var(--line)}
+.three h3{font-size:19px;font-weight:600;letter-spacing:-.01em;margin:12px 0 8px}
+.three p{color:var(--sub);font-size:14.5px}
+
+/* ---------------- price ---------------- */
+.buy{padding:96px 0 0;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:end}
+.buy .price{font-size:clamp(56px,8vw,88px);font-weight:700;letter-spacing:-.04em;line-height:1;margin-top:14px}
+.buy ul{list-style:none;display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:16px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--sub)}
+.buy .side p{color:var(--sub);font-size:15px;margin-bottom:22px}
+
+/* ---------------- spec ---------------- */
+.spec{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:72px}
+.spec>div{padding:24px 20px 26px 0}
+.spec>div+div{padding-left:20px;border-left:1px solid var(--line)}
+.spec .v{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:10px 0 6px}
+.spec p{color:var(--muted);font-size:13.5px}
+
+.more{margin:56px 0 0;color:var(--sub);font-size:15px}
+.more a{border-bottom:1px solid rgba(27,31,35,.3)}
+.more a:hover{border-color:var(--ink)}
+
+footer{margin-top:96px;border-top:1px solid var(--line);padding:30px 0 56px;color:var(--muted);font-size:12.5px;background:rgba(236,238,240,.9)}
+footer .links{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:14px}
 footer a:hover{color:var(--ink)}
-footer .tm{margin-top:18px;font-size:11.5px;line-height:1.6;color:var(--muted);max-width:900px}
-a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:999px}
 
-/* four columns stop fitting "AU · VST3 · AAX" well before the phone layout */
-@media(max-width:1000px){
-  .spec{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .spec div:nth-child(3){border-left:0}
-  .spec div:nth-child(n+3){border-top:1px solid var(--line)}
+@media(max-width:820px){
+  .three,.spec{grid-template-columns:1fr}
+  .three>div,.three>div+div,.spec>div,.spec>div+div{padding:22px 0;border-left:0}
+  .three>div+div,.spec>div+div{border-top:1px solid var(--line)}
+  .buy{grid-template-columns:1fr;gap:12px}
+  .hero{padding-top:64px}
+  .shots{grid-template-columns:1fr}
 }
-@media(max-width:760px){
-  .hud.top{padding:14px 16px}
-  .hud .brand span{display:none}
-  .hud.bottom{padding:14px 16px;font-size:10px}
-  .ticks i{width:12px}
-  .cap.top{top:10vh}
-  .wrap{padding:0 16px}
-  .spec div{padding:26px 16px}
-  .spec .v{font-size:17px}
-  .num{top:12vh}
-  .num-cap{top:calc(12vh + 17vw)}
+@media(max-width:620px){
+  .eqbody{padding:14px 12px 16px}
+  .stage.pair .eqwin{width:100%;margin-left:0}
+  .inserts .say2{display:none}
+  .slot{font-size:11.5px;padding:5px 9px}
+  .eqhead .t{font-size:12px;letter-spacing:.14em}
+  .eqhead .v{font-size:8.5px;letter-spacing:.2em}
+  .knobs{grid-template-columns:1fr 1fr}
+  .knobs .rule{display:none}
+  .knobs .pairk{grid-column:1/-1;grid-row:2}
+  .knob svg{width:96px;height:90px}
+  .plot{aspect-ratio:1.9/1}
+  .ph .vendor,.ph .status{display:none}
+  .brand span{display:none}
+  .top .inner{padding:10px 16px}
 }
-@media(prefers-reduced-motion:reduce){
-  .grain,.tc .rec,.scrollhint::after{animation:none}
-}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
-<body class="lang-en bars">
+<body class="lang-en">
 
-<canvas id="stage" aria-hidden="true"></canvas>
-<div class="vignette"></div>
-<div class="grain" id="grain"></div>
-
-<!-- ============================ HUD -->
-<div class="hud top">
-  <a class="brand" href="#" aria-label="EQ Mirror">
+<header class="top"><div class="inner">
+  <a class="brand" href="./">
     <svg width="24" height="22" viewBox="-2 0 24 22" fill="none" stroke-linecap="round" stroke="#3c4248" aria-hidden="true">
       <line x1="-1" y1="11" x2="21" y2="11" stroke-opacity=".3" stroke-width=".9"/>
       <path d="M0 13 C4 13 6 19 10 19 C14 19 16 15 20 15" stroke-opacity=".38" stroke-width="1.7"/>
       <path d="M0 9 C4 9 6 3 10 3 C14 3 16 7 20 7" stroke-width="1.7"/>
     </svg>
-    <span><b>EQ</b> <i>Mirror</i></span>
-  </a>
+    <span><b>EQ</b> Mirror</span></a>
   <div class="right">
-    <div class="lang"><button id="btn-en" class="on">EN</button><button id="btn-ja">日本語</button></div>
+    <div class="lang"><button id="btn-en" class="on" aria-pressed="true">EN</button><button id="btn-ja" aria-pressed="false">日本語</button></div>
     <a class="btn solid" href="https://tokyomeltdown.gumroad.com/l/eqmirror" target="_blank" rel="noopener"><span class="en">Buy $18</span><span class="ja">購入 $18</span></a>
   </div>
-</div>
-<div class="hud bottom" aria-hidden="true">
-  <div class="chap"><div><b id="chNum">00</b><span id="chName">SIGNAL</span></div><div class="ticks" id="ticks"></div></div>
-  <div class="tc"><span class="rec"></span><span id="tc">00:00:00:00</span></div>
-</div>
-<div class="scrollhint" id="hint"><span class="en">Scroll to play</span><span class="ja">スクロールで再生</span></div>
+</div></header>
 
-<!-- ============================ captions (one per beat) -->
-<div class="cap mid" data-ch="0" data-a="0" data-b=".62" id="title">
-  <p class="k">EQ Mirror · AU / VST3 / AAX</p>
-  <h1><span class="blk en kin">Analog,<br>made <span class="warm">visible.</span></span><span class="blk ja kin">アナログを、<br><span class="warm">可視化する。</span></span></h1>
-</div>
-<div class="cap top" data-ch="1" data-a=".04" data-b=".5">
-  <p class="k">01 · the dial</p>
-  <h2><span class="blk en kin">The dial says <span class="warm">+6.</span></span><span class="blk ja kin">目盛りは、<span class="warm">+6</span>。</span></h2>
-</div>
-<div class="cap top" data-ch="1" data-a=".52" data-b="1">
-  <p class="k">01 · the dial</p>
-  <h2><span class="blk en kin">The audio says<br>something else.</span><span class="blk ja kin">でも、音は<br>少し<wbr>違う<wbr>動きを<wbr>した。</span></h2>
-</div>
-<div class="cap top" data-ch="2" data-a="0" data-b=".52">
-  <p class="k">02 · two listeners</p>
-  <h2><span class="blk en kin">One listens before.<br>One listens after.</span><span class="blk ja kin">1つは前で。<br>1つは後ろで。</span></h2>
-</div>
-<div class="cap top" data-ch="2" data-a=".54" data-b="1">
-  <p class="k">02 · two listeners</p>
-  <h2><span class="blk en kin">Insert them.<br>The rest is automatic.</span><span class="blk ja kin">挿すだけ。<br>あとは自動。</span></h2>
-  <p><span class="blk en">No sidechain, no settings. Linear-phase EQs included.</span><span class="blk ja">サイドチェーンも、<wbr>設定も、<wbr>いりません。<wbr>リニアフェイズEQでも<wbr>使えます。</span></p>
-</div>
-<div class="cap top" data-ch="3" data-a="0" data-b=".55">
-  <p class="k">03 · the difference</p>
-  <h2><span class="blk en kin">After, minus before.</span><span class="blk ja kin">後ろの音 − 前の音。</span></h2>
-</div>
-<div class="cap top" data-ch="3" data-a=".57" data-b="1">
-  <p class="k">03 · the difference</p>
-  <h2><span class="blk en kin">That's <span class="warm">your EQ.</span></span><span class="blk ja kin">それが、<wbr><span class="warm">あなたのEQ。</span></span></h2>
-</div>
-<div class="cap top" data-ch="4" data-a="0" data-b=".3">
-  <p class="k">04 · dock</p>
-  <h2><span class="blk en kin">Or just one,<br>with your EQ inside.</span><span class="blk ja kin">あるいは、<br>EQごと<wbr>1つに。</span></h2>
-</div>
-<div class="cap top dockname" data-ch="4" data-a=".31" data-b=".5">
-  <p class="k">04 · dock</p>
-  <h2><span class="blk en kin"><b>EQ</b> <i>Mirror</i> <span class="warm">DOCK</span></span><span class="blk ja kin"><b>EQ</b> <i>Mirror</i> <span class="warm">DOCK</span></span></h2>
-</div>
-<div class="cap top" data-ch="4" data-a=".52" data-b=".9">
-  <p class="k">04 · dock</p>
-  <h2><span class="blk en kin">Turn a knob.<br>The curve follows.</span><span class="blk ja kin">ツマミを回せば、<br>カーブが<wbr>ついてくる。</span></h2>
-  <p><span class="blk en">EQ Mirror Dock loads your AU or VST3 EQ and draws its curve as you turn it, even with the transport stopped. One licence covers both.</span><span class="blk ja">EQ Mirror Dock は、<wbr>AU / VST3 の<wbr>EQを<wbr>中に<wbr>読み込み、<wbr>再生を<wbr>止めていても、<wbr>回した<wbr>そばから<wbr>カーブを<wbr>描きます。<wbr>ライセンスは<wbr>EQ Mirror と<wbr>共通です。</span></p>
-</div>
-<div class="cap top" data-ch="5" data-a="0" data-b=".2">
-  <p class="k">05 · evidence</p>
-  <h2><span class="blk en kin">Three EQs,<br>measured.</span><span class="blk ja kin">3つのEQを、<br>実測する。</span></h2>
-</div>
-<div class="cap top" data-ch="6" data-a="0" data-b="1">
-  <p class="k">06 · stereo</p>
-  <h2><span class="blk en kin">Left and right.<br>Mid and side.</span><span class="blk ja kin">左右も、<br>M/S も。</span></h2>
-  <p><span class="blk en">When the two sides are treated differently, the curve opens into a band and says which.</span><span class="blk ja">左右で<wbr>違う<wbr>処理を<wbr>すると、<wbr>カーブに<wbr>幅が<wbr>出て、<wbr>どちらの<wbr>処理かを<wbr>教えて<wbr>くれます。</span></p>
-</div>
-<div class="cap top" data-ch="7" data-a="0" data-b=".5">
-  <p class="k">07 · null</p>
-  <h2><span class="blk en kin">With it. Without it.</span><span class="blk ja kin">挿した音と、<wbr>外した音。</span></h2>
-</div>
-<div class="cap top" data-ch="8" data-a=".35" data-b="1">
-  <h2 style="font-size:clamp(40px,8vw,128px)"><span class="blk en kin">Learn it by eye.<br><span class="warm">Then trust <span class="nw">your ears.</span></span></span><span class="blk ja kin">見て覚えたら、<br><span class="warm">あとは耳で。</span></span></h2>
-</div>
+<main class="wrap">
 
-<div class="num" id="num">+1.1<small>dB</small></div>
-<div class="num-cap" id="numCap">
-  <p class="who" id="numWho"></p>
-  <p class="what" id="numWhat"></p>
-</div>
-<div class="zero" id="zero">
-  <div class="z">0</div>
-  <p class="zl"><span class="en">bits changed</span><span class="ja">ビットの違い</span></p>
-</div>
+<section class="hero">
+  <div class="k"><span class="en">EQ Mirror · AU · VST3 · AAX · for macOS</span><span class="ja">EQ Mirror · AU · VST3 · AAX · macOS</span></div>
+  <h1><span class="en">Analog, made visible.</span><span class="ja">アナログを、<br>可視化する。</span></h1>
+  <p class="lede">
+    <span class="en">The curve your EQ is really applying, measured from the sound. Put EQ Mirror on either side of your EQ, or your EQ inside EQ Mirror Dock.</span>
+    <span class="ja">EQ が実際にかけているカーブを、音から測って描きます。EQ を EQ Mirror で前後から挟むか、EQ Mirror Dock の中に入れるか。</span>
+  </p>
+  <div class="cta">
+    <a class="btn solid big" href="https://tokyomeltdown.gumroad.com/l/eqmirror" target="_blank" rel="noopener"><span class="en">Buy — $18</span><span class="ja">購入する — $18</span></a>
+    <a class="btn ghost big dl" href="https://github.com/tokyomeltdown/eq-mirror/releases/latest/download/EQMirror.pkg"><span class="en">Try 14 days free</span><span class="ja">14日間ためす</span></a>
+  </div>
+  <p class="fine">macOS 12+ · Apple silicon &amp; Intel · <span class="en">Signed &amp; notarized</span><span class="ja">署名・公証済み</span></p>
 
-<!-- ============================ the film's length -->
-<div id="film"></div>
-
-<!-- ============================ after the film -->
-<div class="after">
-  <section class="real">
-    <div class="wrap">
-      <p class="k">EQ Mirror Dock</p>
-      <figure>
-        <img src="img/dock.jpg" width="1800" height="1194" loading="lazy" decoding="async" alt="EQ Mirror Dock with an EQ loaded: the curve the EQ applies on top, the EQ's own window below" data-alt-ja="EQを読み込んだ EQ Mirror Dock。上にEQがかけているカーブ、下にEQ自身の画面">
-        <figcaption><span class="en">Point at the curve to read the level and frequency at that spot.</span><span class="ja">カーブに<wbr>カーソルを<wbr>当てると、<wbr>その位置の<wbr>レベルと<wbr>周波数が<wbr>読めます。</span>
-          <small><span class="en">EQ shown: a demo made for this page.</span><span class="ja">映っているEQは、<wbr>このページ用の<wbr>デモです。</span></small></figcaption>
-      </figure>
+  <!-- A drawing of the plug-in rather than a screenshot: the knobs are the
+       demo EQ's, and the curve is worked out from that EQ's own filters
+       (DemoEQ/Source/Bands.h), drawn in the plug-in's colours and with its
+       rules: the scale opens at 5 and 10 dB, the largest boost and cut are
+       labelled, and pointing at the curve reads it. -->
+  <div class="demo">
+    <div class="seg" role="group" aria-label="Which plug-in">
+      <button id="m-pair" class="on" aria-pressed="true">EQ Mirror</button><button id="m-dock" aria-pressed="false">EQ Mirror Dock</button>
     </div>
-  </section>
-  <section class="buy">
-    <div class="wrap">
-      <p class="k"><span class="en"><span class="nw">EQ Mirror + EQ Mirror Dock,</span> <span class="nw">one licence</span></span><span class="ja"><span class="nw">EQ Mirror ＋ EQ Mirror Dock、</span><wbr><span class="nw">1つのライセンスで</span></span></p>
-      <div class="price"><sup>$</sup>18</div>
-      <div class="chips">
-        <span><span class="en">One payment</span><span class="ja">買い切り</span></span>
-        <span><span class="en">Up to five Macs</span><span class="ja">5台まで</span></span>
-        <span><span class="en">No subscription</span><span class="ja">サブスクなし</span></span>
-        <span><span class="en">Free updates</span><span class="ja">無料アップデート</span></span>
+    <div class="stage pair" id="stage">
+      <div class="inserts">
+        <span class="k"><span class="en">Inserts</span><span class="ja">インサート</span></span>
+        <span class="slots only-pair"><span class="slot me">EQ Mirror</span><span class="arr">→</span><span class="slot">Analog Equalizer</span><span class="arr">→</span><span class="slot me">EQ Mirror</span></span>
+        <span class="slots only-dock"><span class="slot me">EQ Mirror Dock<span class="in">Analog Equalizer</span></span></span>
+        <span class="say2 only-pair"><span class="en">One either side of your EQ</span><span class="ja">EQ の前後に 1 つずつ</span></span>
+        <span class="say2 only-dock"><span class="en">One plug-in, your EQ inside</span><span class="ja">1 つの中に、EQ ごと</span></span>
       </div>
-      <div class="cta">
-        <a class="btn solid big" href="https://github.com/tokyomeltdown/eq-mirror/releases/latest/download/EQMirror.pkg"><span class="en">Try it free for 14 days</span><span class="ja">14日間無料で試す</span> →</a>
-        <a class="btn ghost big" href="https://tokyomeltdown.gumroad.com/l/eqmirror" target="_blank" rel="noopener"><span class="en">Buy — $18</span><span class="ja">購入する — $18</span></a>
+      <div class="win mirror">
+        <div class="tbar"><i></i><i></i><i></i><span class="only-pair">EQ Mirror</span><span class="only-dock">EQ Mirror Dock</span></div>
+        <div class="ph">
+          <span class="logo">
+            <svg width="20" height="18" viewBox="-2 0 24 22" fill="none" stroke-linecap="round" stroke="#3c4248" aria-hidden="true"><line x1="-1" y1="11" x2="21" y2="11" stroke-opacity=".3" stroke-width=".9"/><path d="M0 13 C4 13 6 19 10 19 C14 19 16 15 20 15" stroke-opacity=".38" stroke-width="1.7"/><path d="M0 9 C4 9 6 3 10 3 C14 3 16 7 20 7" stroke-width="1.7"/></svg>
+            <span><b>EQ</b> Mirror</span>
+          </span>
+          <span class="dock only-dock">DOCK</span>
+          <span class="sep only-dock"></span>
+          <span class="eq only-dock">Analog Equalizer</span><span class="vendor only-dock">tokyomeltdown ▾</span>
+          <span class="status">distortion 0.00 %</span>
+        </div>
+        <div class="plot"><canvas id="cv" aria-label="The curve the EQ applies" role="img"></canvas></div>
       </div>
-      <p class="cta-note"><span class="en">14 days, every feature, no account needed.</span><span class="ja">14日間、<wbr>すべての<wbr>機能を<wbr>無料で。<wbr>アカウント<wbr>不要。</span></p>
-    </div>
-  </section>
-  <div class="wrap">
-    <div class="spec">
-      <div><p class="t">Formats</p><p class="v"><span class="nw">AU · VST3 · AAX</span></p><p class="s"><span class="en">In any DAW that hosts these formats.</span><span class="ja">これらの<wbr>形式に<wbr>対応した<wbr>DAWで。</span></p><p class="fn"><span class="en">* In the Dock’s AAX version, the EQ inside runs as AU or VST3.</span><span class="ja">※ Dock の<wbr>AAX 版では、<wbr>中のEQは<wbr>AU / VST3 版で<wbr>動きます。</span></p></div>
-      <div><p class="t">System</p><p class="v"><span class="nw">macOS 12+</span></p><p class="s"><span class="nw">Apple silicon</span> &amp; Intel<br><span class="en">Signed &amp; notarized</span><span class="ja">署名・公証済み</span></p></div>
-      <div><p class="t"><span class="en">Your sound</span><span class="ja">音への影響</span></p><p class="v"><span class="en">Untouched</span><span class="ja">なし</span></p><p class="s"><span class="en">Bit-identical bounces, no added latency. The Dock sounds exactly like your EQ on its own.</span><span class="ja">書き出しは<wbr>ビット単位で<wbr>一致、<wbr>レイテンシ0。<wbr>Dock の<wbr>音は<wbr>EQ<wbr>単体と<wbr>同じ。</span></p></div>
-      <div><p class="t"><span class="en">Privacy</span><span class="ja">プライバシー</span></p><p class="v"><span class="en">Offline</span><span class="ja">オフライン</span></p><p class="s"><span class="en">One request, once, to check your key.</span><span class="ja">通信は<wbr>ライセンス<wbr>認証の<wbr>1回だけ。</span></p></div>
-    </div>
-    <footer>
-      <div class="row">
-        <span class="brand"><span><b>EQ</b> <i>Mirror</i></span></span>
-        <div class="links">
-          <a href="eula/"><span class="en">Licence</span><span class="ja">使用許諾</span></a>
-          <a href="mailto:tokyomeltdown.ai@gmail.com?subject=EQ%20Mirror%20support"><span class="en">Support</span><span class="ja">サポート</span></a>
-          <a href="https://tokyomeltdown.gumroad.com/l/eqmirror" target="_blank" rel="noopener">Gumroad</a>
-          <a href="https://tokyomeltdown.github.io" target="_blank" rel="noopener">tokyomeltdown</a>
-          <a href="https://x.com/tokyomeltdownJP" target="_blank" rel="noopener" aria-label="X (@tokyomeltdownJP)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;vertical-align:-2px;fill:currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <div class="gap"></div>
+      <div class="win eqwin">
+        <div class="tbar dark only-pair"><i></i><i></i><i></i><span>Analog Equalizer</span></div>
+        <div class="eqbody">
+        <div class="eqhead"><span class="t">ANALOG EQUALIZER</span><span class="v">TOKYOMELTDOWN<i></i></span></div>
+        <div class="knobs">
+          <div class="knob" data-p="low"></div>
+          <div class="rule"></div>
+          <div class="pairk">
+            <div class="knob" data-p="midGain"></div>
+            <div class="knob" data-p="midFreq"></div>
+            <div class="midlabel">MID</div>
+          </div>
+          <div class="rule"></div>
+          <div class="knob" data-p="high"></div>
+        </div>
         </div>
       </div>
-      <p class="tm"><span class="en">© 2026 tokyomeltdown · Payments handled by Gumroad. VST is a registered trademark of Steinberg Media Technologies GmbH. Apple, Mac, macOS and Audio Units are trademarks of Apple Inc. AAX is a trademark of Avid Technology, Inc.</span><span class="ja">© 2026 tokyomeltdown · 決済は Gumroad が<wbr>処理します。<wbr>VST は Steinberg Media Technologies GmbH の<wbr>登録商標です。<wbr>Apple、Mac、macOS、Audio Units は Apple Inc. の<wbr>商標です。<wbr>AAX は Avid Technology, Inc. の<wbr>商標です。</span></p>
-    </footer>
+    </div>
+    <div class="say"><span class="hint" aria-hidden="true"><span class="en">↑ Turn a knob</span><span class="ja">↑ ツマミを回す</span></span><span class="k"><span class="en">A drawing of the plug-in</span><span class="ja">画面はイメージです</span></span></div>
   </div>
-</div>
+
+  <div class="shots">
+    <figure>
+      <img src="img/shot-mirror.jpg" width="1600" height="814" loading="lazy" decoding="async" alt="EQ Mirror after the EQ: the curve the EQ applies over the music's spectrum">
+      <figcaption class="k">EQ Mirror</figcaption>
+    </figure>
+    <figure>
+      <img src="img/shot-dock.jpg" width="1500" height="999" loading="lazy" decoding="async" alt="EQ Mirror Dock with Analog Equalizer inside: the curve on top, the EQ's own window below">
+      <figcaption class="k">EQ Mirror Dock</figcaption>
+    </figure>
+    <p class="note"><span class="en">Screenshots. Analog Equalizer is our own demo EQ; use your own AU or VST3 EQs.</span><span class="ja">実際の画面です。Analog Equalizer は当方のデモ用 EQ です。お手持ちの AU / VST3 の EQ で使えます。</span></p>
+  </div>
+</section>
+
+<section class="three">
+  <div>
+    <div class="k">01 · <span class="en">Measured</span><span class="ja">実測</span></div>
+    <h3><span class="en">From the sound, not the dial.</span><span class="ja">目盛りではなく、音から。</span></h3>
+    <p><span class="en">Analog-style EQs seldom draw a curve. EQ Mirror measures the shape the sound actually went through.</span><span class="ja">アナログ系の EQ は、たいていカーブを描きません。EQ Mirror は、音が実際に通った形を測ります。</span></p>
+  </div>
+  <div>
+    <div class="k">02 · Dock</div>
+    <h3><span class="en">Your EQ, inside.</span><span class="ja">EQ ごと、1つに。</span></h3>
+    <p><span class="en">Load an AU or VST3 EQ into EQ Mirror Dock. The curve follows every knob, even with the transport stopped.</span><span class="ja">AU / VST3 の EQ を EQ Mirror Dock に読み込めば、再生を止めていても、ツマミを回すたびにカーブがついてきます。</span></p>
+  </div>
+  <div>
+    <div class="k">03 · <span class="en">Stereo</span><span class="ja">ステレオ</span></div>
+    <h3><span class="en">Left and right. Mid and side.</span><span class="ja">左右も、M/S も。</span></h3>
+    <p><span class="en">When the two sides are treated differently, the curve opens into a band and says which.</span><span class="ja">左右や M/S で処理が違うと、カーブが帯に開いて、どちらかを示します。</span></p>
+  </div>
+</section>
+
+<section class="buy" id="buy">
+  <div>
+    <div class="k"><span class="en">EQ Mirror + EQ Mirror Dock, one licence</span><span class="ja">EQ Mirror ＋ Dock、1つのライセンスで</span></div>
+    <div class="price">$18</div>
+    <ul>
+      <li><span class="en">One-time</span><span class="ja">買い切り</span></li>
+      <li><span class="en">5 Macs</span><span class="ja">5台まで</span></li>
+      <li><span class="en">No subscription</span><span class="ja">サブスクなし</span></li>
+      <li><span class="en">Free updates</span><span class="ja">無料アップデート</span></li>
+    </ul>
+  </div>
+  <div class="side">
+    <p><span class="en">Every feature, free for 14 days. No account.<br>When the trial ends, the curve is no longer shown and the sound keeps playing.</span><span class="ja">14日間、すべての機能を試せます。アカウントは要りません。<br>トライアルが終了するとカーブは表示されなくなりますが、音はそのまま流れます。</span></p>
+    <div class="cta" style="margin-top:0">
+      <a class="btn solid big" href="https://tokyomeltdown.gumroad.com/l/eqmirror" target="_blank" rel="noopener"><span class="en">Buy — $18</span><span class="ja">購入する — $18</span></a>
+      <a class="btn ghost big dl" href="https://github.com/tokyomeltdown/eq-mirror/releases/latest/download/EQMirror.pkg"><span class="en">Download the trial</span><span class="ja">トライアルをダウンロード</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="spec">
+  <div>
+    <div class="k"><span class="en">Formats</span><span class="ja">形式</span></div>
+    <div class="v">AU · VST3 · AAX</div>
+    <p><span class="en">Both plug-ins, in any DAW that hosts these. The Dock loads AU and VST3 EQs.</span><span class="ja">どちらのプラグインも。Dock に入れられる EQ は AU / VST3 です。</span></p>
+  </div>
+  <div>
+    <div class="k"><span class="en">System</span><span class="ja">動作環境</span></div>
+    <div class="v">macOS 12+</div>
+    <p><span class="en">Apple silicon &amp; Intel. Signed and notarized.</span><span class="ja">Apple silicon・Intel。署名・公証済み。</span></p>
+  </div>
+  <div>
+    <div class="k"><span class="en">Your sound</span><span class="ja">音への影響</span></div>
+    <div class="v"><span class="en">Untouched</span><span class="ja">なし</span></div>
+    <p><span class="en">The pair never changes the audio. In the Dock you hear your EQ alone, and the Dock tells your DAW its latency.</span><span class="ja">前後に挿す EQ Mirror は音を変えません。Dock で聞こえるのは中の EQ の音だけで、遅れも DAW に伝えます。</span></p>
+  </div>
+  <div>
+    <div class="k"><span class="en">Privacy</span><span class="ja">プライバシー</span></div>
+    <div class="v"><span class="en">Offline</span><span class="ja">オフライン</span></div>
+    <p><span class="en">Audio is never stored or sent. The only connection is licence activation.</span><span class="ja">音は保存も送信もしません。通信はライセンス認証だけです。</span></p>
+  </div>
+</section>
+
+<p class="more"><a href="https://tokyomeltdown.github.io/" target="_blank" rel="noopener"><span class="en">See more tools →</span><span class="ja">ほかのツールを見る →</span></a></p>
+
+</main>
+
+<footer>
+ <div class="wrap">
+  <div class="links">
+    <a href="eula/"><span class="en">Licence</span><span class="ja">使用許諾</span></a>
+    <a href="mailto:tokyomeltdown.ai@gmail.com?subject=EQ%20Mirror%20support"><span class="en">Support</span><span class="ja">サポート</span></a>
+    <a href="https://tokyomeltdown.gumroad.com/l/eqmirror" target="_blank" rel="noopener">Gumroad</a>
+    <a href="https://tokyomeltdown.github.io" target="_blank" rel="noopener">tokyomeltdown</a>
+    <a href="https://x.com/tokyomeltdownJP" target="_blank" rel="noopener" aria-label="X (@tokyomeltdownJP)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;vertical-align:-2px;fill:currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  </div>
+  <p>© 2026 tokyomeltdown · <span class="en">Payments handled by Gumroad. VST is a registered trademark of Steinberg Media Technologies GmbH. Apple, Mac, macOS and Audio Units are trademarks of Apple Inc. AAX is a trademark of Avid Technology, Inc.</span><span class="ja">決済は Gumroad が処理します。VST は Steinberg Media Technologies GmbH の登録商標です。Apple、Mac、macOS、Audio Units は Apple Inc. の商標です。AAX は Avid Technology, Inc. の商標です。</span></p>
+ </div>
+</footer>
 
 <script>
 (function(){
-"use strict";
-var REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-var DPR = Math.min(devicePixelRatio || 1, 2);
-var LANG = 'en';
-var COL = { ink:'27,31,35', boost:'200,106,79', cut:'47,144,136', muted:'102,109,117' };
-var FONT = '-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans",sans-serif';
-var MONO = 'ui-monospace,"SF Mono",Menlo,monospace';
+  "use strict";
+  var REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ------------------------------------------------ language */
-function setLang(l){
-  LANG = l; document.body.classList.remove('lang-en','lang-ja'); document.body.classList.add('lang-' + l);
-  document.documentElement.lang = l;
-  document.getElementById('btn-en').classList.toggle('on', l === 'en');
-  document.getElementById('btn-ja').classList.toggle('on', l === 'ja');
-  try { localStorage.setItem('eqmirror-lang', l); } catch(e) {}
-  NUMS_DIRTY = true; wasStill = false;
-  document.querySelectorAll('img[data-alt-ja]').forEach(function(im){ if (!im.dataset.altEn) im.dataset.altEn = im.alt; im.alt = l === 'ja' ? im.dataset.altJa : im.dataset.altEn; });
-}
-var NUMS_DIRTY = true;
-document.getElementById('btn-en').onclick = function(){ setLang('en'); };
-document.getElementById('btn-ja').onclick = function(){ setLang('ja'); };
-var saved = null; try { saved = localStorage.getItem('eqmirror-lang'); } catch(e) {}
-var asked = (location.search.match(/[?&]lang=(en|ja)\b/) || [])[1];
-setLang(asked || saved || ((navigator.language || '').indexOf('ja') === 0 ? 'ja' : 'en'));
-
-/* ------------------------------------------------ helpers */
-function clamp(v,a,b){ return v < a ? a : v > b ? b : v; }
-function lerp(a,b,t){ return a + (b - a) * t; }
-function seg(p,a,b){ return clamp((p - a) / (b - a), 0, 1); }
-function eio(t){ t = clamp(t,0,1); return t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; }
-function eout(t){ t = clamp(t,0,1); return 1 - Math.pow(1 - t, 3); }
-function rgba(c,a){ return 'rgba(' + c + ',' + a + ')'; }
-
-/* ------------------------------------------------ film grain, generated here */
-(function(){
-  var g = document.createElement('canvas'); g.width = g.height = 160; var x = g.getContext('2d'), d = x.createImageData(160,160);
-  for (var i = 0; i < d.data.length; i += 4){ var v = Math.random() * 255; d.data[i] = d.data[i+1] = d.data[i+2] = v; d.data[i+3] = 255; }
-  x.putImageData(d,0,0); document.getElementById('grain').style.backgroundImage = 'url(' + g.toDataURL() + ')';
-})();
-
-/* ------------------------------------------------ the model: log frequency, dB curves, a moving spectrum */
-var N = 220, FREQ = [];
-for (var i0 = 0; i0 < N; i0++) FREQ.push(20 * Math.pow(1000, i0 / (N - 1)));
-function band(f,b){
-  if (b.t === 'bell'){ var r = f / b.f - b.f / f; return b.g / (1 + r * r * b.q * b.q); }
-  if (b.t === 'hs') return b.g / (1 + Math.pow(b.f / f, 2));
-  if (b.t === 'ls') return b.g / (1 + Math.pow(f / b.f, 2));
-  if (b.t === 'hp') return -10 * Math.log(1 + Math.pow(b.f / f, 4)) / Math.LN10;
-  return 0;
-}
-function curve(bands){ var o = new Float32Array(N); for (var i = 0; i < N; i++){ var s = 0; for (var k = 0; k < bands.length; k++) s += band(FREQ[i], bands[k]); o[i] = s; } return o; }
-function spectrum(t,seed){
-  var o = new Float32Array(N); seed = seed || 0;
-  for (var i = 0; i < N; i++){
-    var lf = Math.log(FREQ[i]) / Math.LN2, lo = Math.max(0, 5.5 - lf);
-    var v = -4.2 * Math.max(0, lf - 7.6) - 6.3 * lo * lo + 5 * Math.exp(-Math.pow((lf - 5.8) / .45, 2)) + 3.5 * Math.exp(-Math.pow((lf - 7.7) / .5, 2)) + 3 * Math.exp(-Math.pow((lf - 10.6) / .9, 2));
-    v += 2.2 * Math.sin(lf * 3.1 + t * 1.3 + seed) + 1.6 * Math.sin(lf * 7.3 - t * 2.1 + seed * 2) + 1.1 * Math.sin(lf * 13.7 + t * 3.3);
-    o[i] = v - 8;
+  /* ------------------------------------------------ language */
+  function setLang(l){
+    document.body.className = 'lang-' + l;
+    document.documentElement.lang = l;
+    ['en','ja'].forEach(function(x){
+      var b = document.getElementById('btn-' + x);
+      b.classList.toggle('on', x === l); b.setAttribute('aria-pressed', String(x === l));
+    });
+    try { localStorage.setItem('eqmirror-lang', l); } catch(e) {}
   }
-  return o;
-}
-function mix(a,b,t){ var o = new Float32Array(N); for (var i = 0; i < N; i++) o[i] = lerp(a[i], b[i], t); return o; }
-// Three measured shapes (from real measurements; the EQs are not named).
-var SH_ZERO  = curve([{ t:'bell', f:700, g:1.1, q:.02 }, { t:'hs', f:17000, g:-.8 }]);
-var SH_TRICK = curve([{ t:'bell', f:870, g:-.7, q:.45 }]);
-var SH_PRES  = curve([{ t:'bell', f:1210, g:5.2, q:.9 }]);
-var SH_FLOW  = curve([{ t:'bell', f:110, g:3.4, q:.9 }, { t:'bell', f:520, g:-3.8, q:1.3 }, { t:'hs', f:7000, g:2.6 }, { t:'hp', f:28 }]);
-var SH_BELL  = curve([{ t:'bell', f:1240, g:5.8, q:1.1 }]);
-var SH_FLAT  = new Float32Array(N);
+  document.getElementById('btn-en').onclick = function(){ setLang('en'); };
+  document.getElementById('btn-ja').onclick = function(){ setLang('ja'); };
+  var saved = null;
+  try { saved = localStorage.getItem('eqmirror-lang'); } catch(e) {}
+  setLang(saved || ((navigator.language || '').indexOf('ja') === 0 ? 'ja' : 'en'));
 
-/* ------------------------------------------------ canvas */
-var cv = document.getElementById('stage'), ctx = cv.getContext('2d'), W = 0, H = 0;
-function size(){ W = innerWidth; H = innerHeight; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR,0,0,DPR,0,0); wasStill = false; }
-addEventListener('resize', size); size();
+  /* ------------------------------------------------ the trial download */
+  // The browser's own confirmation before the package downloads. The version and size are written here by hand:
+  // change them with each release (Finder's size, in decimal megabytes).
+  var DL = { version: '2.1.0', size: 20 };
+  document.querySelectorAll('a.dl').forEach(function(a){
+    a.addEventListener('click', function(e){
+      var ja = document.body.classList.contains('lang-ja');
+      var msg = ja
+        ? 'EQMirror.pkg（EQ Mirror ' + DL.version + '・約 ' + DL.size + ' MB）をダウンロードしますか？'
+        : 'Download EQMirror.pkg (EQ Mirror ' + DL.version + ', about ' + DL.size + ' MB)?';
+      if (!window.confirm(msg)) e.preventDefault();
+    });
+  });
 
-function path(pts){ ctx.beginPath(); for (var i = 0; i < pts.length; i++){ if (i) ctx.lineTo(pts[i][0], pts[i][1]); else ctx.moveTo(pts[i][0], pts[i][1]); } }
-function glow(pts, color, width, blur, alpha){
-  ctx.save(); ctx.globalAlpha = alpha == null ? 1 : alpha; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  // Drawn as the plug-in draws its curve: #2b3238, the width given, no shadow.
-  path(pts); ctx.strokeStyle = color === COL.muted ? '#9aa0a8' : '#2b3238'; ctx.lineWidth = width; ctx.stroke();
-  ctx.restore();
-}
-/* The plug-in scales its strokes with its window: 2.4 px for the curve at
-   1100 px wide (kCurveW), the factor held between 0.75 and 1.8. */
-function uiScale(w){ return clamp(w / 1100, .75, 1.8); }
-/* A measurement display with no frame: grid, spectrum, zero line, the curve and its tags. */
-function display(o){
-  var x0 = o.x, y0 = o.y, w = o.w, h = o.h, range = o.range || 8, zeroY = y0 + h / 2, a = o.alpha == null ? 1 : o.alpha, k;
-  var X = function(i){ return x0 + i / (N - 1) * w; }, Y = function(db){ return zeroY - db / range * h / 2 * .92; };
-  ctx.save(); ctx.globalAlpha = a;
-  // grid
-  ctx.strokeStyle = rgba(COL.ink, .05); ctx.lineWidth = 1; ctx.beginPath();
-  [20,50,100,200,500,1000,2000,5000,10000,20000].forEach(function(f){ var x = Math.round(x0 + Math.log(f/20)/Math.log(1000) * w) + .5; ctx.moveTo(x, y0); ctx.lineTo(x, y0 + h); });
-  ctx.stroke();
-  if (o.labels){
-    ctx.fillStyle = rgba(COL.muted, .9); ctx.font = '400 10.5px ' + MONO; ctx.textAlign = 'center';
-    [[50,'50'],[100,'100'],[200,'200'],[500,'500'],[1000,'1k'],[2000,'2k'],[5000,'5k'],[10000,'10k']].forEach(function(p){ ctx.fillText(p[1], x0 + Math.log(p[0]/20)/Math.log(1000) * w, y0 + h + 18); });
+  /* ------------------------------------------------ which plug-in */
+  var stage = document.getElementById('stage');
+  function setMode(m){
+    stage.classList.toggle('dock', m === 'dock'); stage.classList.toggle('pair', m === 'pair');
+    ['dock','pair'].forEach(function(x){
+      var b = document.getElementById('m-' + x);
+      b.classList.toggle('on', x === m); b.setAttribute('aria-pressed', String(x === m));
+    });
+    resize();
   }
-  if (o.spec){
-    ctx.beginPath(); ctx.moveTo(x0, y0 + h);
-    for (k = 0; k < N; k++) ctx.lineTo(X(k), y0 + h - clamp((o.spec[k] + 60) / 60, 0, 1) * h * .82);
-    ctx.lineTo(x0 + w, y0 + h); ctx.closePath();
-    var sg = ctx.createLinearGradient(0, y0, 0, y0 + h); sg.addColorStop(0, rgba(COL.ink, .12 * (o.specA || 1))); sg.addColorStop(1, rgba(COL.ink, 0));
-    ctx.fillStyle = sg; ctx.fill(); ctx.strokeStyle = rgba(COL.ink, .18 * (o.specA || 1)); ctx.lineWidth = 1.2 * uiScale(w); ctx.stroke(); ctx.lineWidth = 1;
+  document.getElementById('m-dock').onclick = function(){ setMode('dock'); };
+  document.getElementById('m-pair').onclick = function(){ setMode('pair'); };
+
+  /* ------------------------------------------------ the demo EQ (DemoEQ/Source/Bands.h, at 48 kHz) */
+  var FS = 48000;
+  function coeffs(type, f0, g, q){
+    var A = Math.pow(10, g / 40), w = 2 * Math.PI * f0 / FS, c = Math.cos(w), al = Math.sin(w) / (2 * q), sA = 2 * Math.sqrt(A) * al;
+    if (type === 'peak') return [1 + al * A, -2 * c, 1 - al * A, 1 + al / A, -2 * c, 1 - al / A];
+    if (type === 'ls') return [A * ((A + 1) - (A - 1) * c + sA), 2 * A * ((A - 1) - (A + 1) * c), A * ((A + 1) - (A - 1) * c - sA),
+                               (A + 1) + (A - 1) * c + sA, -2 * ((A - 1) + (A + 1) * c), (A + 1) + (A - 1) * c - sA];
+    return [A * ((A + 1) + (A - 1) * c + sA), -2 * A * ((A - 1) + (A + 1) * c), A * ((A + 1) + (A - 1) * c - sA),
+            (A + 1) - (A - 1) * c + sA, 2 * ((A - 1) - (A + 1) * c), (A + 1) - (A - 1) * c - sA];
   }
-  if (o.specIn){
-    ctx.setLineDash([3,5]); path(o.specIn.map(function(v,k){ return [X(k), y0 + h - clamp((v + 60) / 60, 0, 1) * h * .82]; }));
-    ctx.strokeStyle = rgba(COL.ink, .5 * (o.specInA == null ? 1 : o.specInA)); ctx.lineWidth = 1.3; ctx.stroke(); ctx.setLineDash([]);
+  function magDb(k, f){
+    var w = 2 * Math.PI * f / FS, c1 = Math.cos(w), s1 = Math.sin(w), c2 = Math.cos(2 * w), s2 = Math.sin(2 * w);
+    var nr = k[0] + k[1] * c1 + k[2] * c2, ni = -(k[1] * s1 + k[2] * s2);
+    var dr = k[3] + k[4] * c1 + k[5] * c2, di = -(k[4] * s1 + k[5] * s2);
+    return 10 * Math.log10((nr * nr + ni * ni) / (dr * dr + di * di));
   }
-  // zero line
-  ctx.strokeStyle = rgba(COL.ink, .22); ctx.beginPath(); ctx.moveTo(x0 - (o.bleed || 0), zeroY); ctx.lineTo(x0 + w + (o.bleed || 0), zeroY); ctx.stroke();
-  if (o.curve){
-    var pts = []; for (k = 0; k < N; k++) pts.push([X(k), Y(o.curve[k])]);
-    if (o.band){
-      ctx.beginPath(); for (k = 0; k < N; k++) ctx.lineTo(X(k), Y(o.curve[k] + o.band[k])); for (k = N - 1; k >= 0; k--) ctx.lineTo(X(k), Y(o.curve[k] - o.band[k])); ctx.closePath();
-      ctx.fillStyle = rgba(COL.ink, .08); ctx.fill();
-      ctx.strokeStyle = rgba(COL.ink, .34); ctx.lineWidth = 1 * uiScale(w); path(pts.map(function(p,k){ return [p[0], Y(o.curve[k] + o.band[k])]; })); ctx.stroke();
-      ctx.strokeStyle = rgba(COL.ink, .34); path(pts.map(function(p,k){ return [p[0], Y(o.curve[k] - o.band[k])]; })); ctx.stroke();
+  function midQ(g){ return 0.5 + 1.1 * Math.abs(g) / 12; }
+  var N = 480, FREQ = new Float32Array(N);
+  for (var i = 0; i < N; i++) FREQ[i] = 20 * Math.pow(1000, i / (N - 1));
+  function eqCurve(s){
+    var st = [coeffs('ls', 70, s.low, 0.9), coeffs('peak', 260, -0.37 * s.low, 1.2), coeffs('peak', s.midFreq, s.midGain, midQ(s.midGain)),
+              coeffs('hs', 5000, 0.8 * s.high, 0.6), coeffs('hs', 15000, 0.5 * s.high, 0.7)];
+    var o = new Float32Array(N);
+    for (var i = 0; i < N; i++){ var d = 0; for (var j = 0; j < 5; j++) d += magDb(st[j], FREQ[i]); o[i] = d; }
+    return o;
+  }
+
+  /* ------------------------------------------------ the knobs */
+  var S = { low: 0, midGain: 0, midFreq: 600, high: 0 };
+  var DEF = { low: 0, midGain: 0, midFreq: 600, high: 0 };
+  var KN = {
+    low:     { name:'LOW',  big:true,  marks:['−12','−6','0','+6','+12'] },
+    midGain: { name:'GAIN', big:false, marks:['−12','−6','0','+6','+12'] },
+    midFreq: { name:'FREQ', big:false, marks:['100','250','630','1.6k','4k'] },
+    high:    { name:'HIGH', big:true,  marks:['−12','−6','0','+6','+12'] }
+  };
+  function toT(p, v){ return p === 'midFreq' ? Math.log(v / 100) / Math.log(40) : (v + 12) / 24; }
+  function fromT(p, t){ t = Math.max(0, Math.min(1, t)); return p === 'midFreq' ? Math.round(100 * Math.pow(40, t)) : Math.round((t * 24 - 12) * 10) / 10; }
+  function fmt(p, v){
+    if (p === 'midFreq') return v >= 1000 ? (v / 1000).toFixed(2) + ' kHz' : v + ' Hz';
+    return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(1) + ' dB';
+  }
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function el(n, a, p){ var e = document.createElementNS(SVGNS, n); for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+  var ANG0 = -135, SWEEP = 270, CX = 56, CY = 50, R = 27;
+  document.querySelectorAll('.knob').forEach(function(box){
+    var p = box.getAttribute('data-p'), d = KN[p];
+    var svg = el('svg', { viewBox:'0 0 112 104', role:'slider', tabindex:'0', 'aria-label': (p === 'midGain' ? 'Mid gain' : p === 'midFreq' ? 'Mid frequency' : d.name.charAt(0) + d.name.slice(1).toLowerCase()) });
+    box.appendChild(svg);
+    var defs = el('defs', {}, svg);
+    var gid = 'g' + p, lg = el('radialGradient', { id: gid, cx:'40%', cy:'32%', r:'75%' }, defs);
+    el('stop', { offset:'0', 'stop-color':'#f4f5f6' }, lg); el('stop', { offset:'.6', 'stop-color':'#c3c6ca' }, lg); el('stop', { offset:'1', 'stop-color':'#8d9196' }, lg);
+    for (var m = 0; m <= 24; m++){
+      var a = (ANG0 + SWEEP * m / 24) * Math.PI / 180, major = m % 6 === 0, r1 = R + 9, r2 = R + (major ? 15 : 12);
+      el('line', { x1: CX + Math.sin(a) * r1, y1: CY - Math.cos(a) * r1, x2: CX + Math.sin(a) * r2, y2: CY - Math.cos(a) * r2,
+                   stroke: major ? '#d7dadd' : '#6f757c', 'stroke-width': major ? 1.6 : 1, 'stroke-linecap':'round' }, svg);
     }
-    // warm above, cool below
-    [[y0, zeroY - y0, COL.boost, y0], [zeroY, h / 2, COL.cut, y0 + h]].forEach(function(z){
-      ctx.save(); ctx.beginPath(); ctx.rect(x0, z[0], w, z[1]); ctx.clip();
-      var g = ctx.createLinearGradient(0, z[3], 0, zeroY); g.addColorStop(0, rgba(z[2], .6)); g.addColorStop(1, rgba(z[2], .12));
-      ctx.beginPath(); ctx.moveTo(pts[0][0], zeroY); for (var q = 0; q < N; q++) ctx.lineTo(pts[q][0], pts[q][1]); ctx.lineTo(pts[N-1][0], zeroY); ctx.closePath();
+    d.marks.forEach(function(txt, k){
+      var a = (ANG0 + SWEEP * k / 4) * Math.PI / 180, rr = R + 26;
+      var t = el('text', { x: CX + Math.sin(a) * rr, y: CY - Math.cos(a) * rr + 3.5, 'text-anchor':'middle', fill:'#c9cdd1', 'font-size':'9', 'font-family':'-apple-system,BlinkMacSystemFont,sans-serif' }, svg);
+      t.textContent = txt;
+    });
+    el('circle', { cx: CX, cy: CY + 1.5, r: R + 4, fill:'rgba(0,0,0,.35)' }, svg);
+    el('circle', { cx: CX, cy: CY, r: R + 3, fill:'#9a9ea3' }, svg);
+    el('circle', { class:'cap', cx: CX, cy: CY, r: R, fill:'url(#' + gid + ')', stroke:'rgba(0,0,0,.25)', 'stroke-width':'1' }, svg);
+    var ptr = el('line', { x1: CX, y1: CY, x2: CX, y2: CY - R + 3, stroke:'#f0a04b', 'stroke-width':'2.6', 'stroke-linecap':'round' }, svg);
+    var name = document.createElement('div'); name.className = 'name' + (d.big ? '' : ' small'); name.textContent = d.name; box.appendChild(name);
+    var val = document.createElement('div'); val.className = 'val'; box.appendChild(val);
+    function draw(){
+      var t = toT(p, S[p]); ptr.setAttribute('transform', 'rotate(' + (ANG0 + SWEEP * t) + ' ' + CX + ' ' + CY + ')');
+      svg.setAttribute('aria-valuetext', fmt(p, S[p])); svg.setAttribute('aria-valuenow', String(S[p]));
+      svg.setAttribute('aria-valuemin', p === 'midFreq' ? '100' : '-12'); svg.setAttribute('aria-valuemax', p === 'midFreq' ? '4000' : '12');
+      val.textContent = fmt(p, S[p]);
+    }
+    function set(v){ S[p] = v; draw(); retarget(); stage.parentNode.classList.add('used'); }
+    var y0 = 0, t0 = 0, dragging = false, hideT = 0;
+    function show(){ clearTimeout(hideT); box.classList.add('active'); }
+    function hideSoon(){ clearTimeout(hideT); hideT = setTimeout(function(){ box.classList.remove('active'); }, 700); }
+    svg.addEventListener('pointerdown', function(e){ dragging = true; y0 = e.clientY; t0 = toT(p, S[p]); svg.setPointerCapture(e.pointerId); show(); e.preventDefault(); });
+    svg.addEventListener('pointermove', function(e){ if (!dragging) return; set(fromT(p, t0 + (y0 - e.clientY) / (e.shiftKey ? 600 : 180))); });
+    function end(){ if (dragging){ dragging = false; hideSoon(); } }
+    svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+    svg.addEventListener('dblclick', function(){ set(DEF[p]); show(); hideSoon(); });
+    svg.addEventListener('keydown', function(e){
+      var step = e.shiftKey ? 1 / 240 : 1 / 48, t = toT(p, S[p]);
+      if (e.key === 'ArrowUp' || e.key === 'ArrowRight') t += step; else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') t -= step;
+      else if (e.key === 'Home') t = toT(p, DEF[p]); else return;
+      e.preventDefault(); set(fromT(p, t)); show(); hideSoon();
+    });
+    box._draw = draw; draw();
+  });
+
+  /* ------------------------------------------------ the curve, as EQ Mirror draws it */
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var W = 0, H = 0, DPR = 1;
+  var target = eqCurve(S), shown = Float32Array.from(target), range = 6;
+  function retarget(){ target = eqCurve(S); dirty = true; }
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var r = cv.getBoundingClientRect(); W = r.width; H = r.height;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    dirty = true;
+  }
+  window.addEventListener('resize', resize);
+
+  // The spectrum behind, in the plug-in's own units (where +12 is the top of
+  // a +-12 scale), its outline read off a screenshot of EQ Mirror on a mix:
+  // a kick and bass peak at 33 and 66 Hz, a level middle, and the top end
+  // falling away above 16 kHz. On it, the fine detail a measured spectrum
+  // has -- harmonics and a few sharper peaks -- then one light smoothing.
+  var SPEC = new Float32Array(N), seed = 11;
+  function rnd(){ seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+  var SHAPE = [[20,-6],[26,2],[33,9],[40,6],[48,3.6],[58,3.4],[66,6.8],[75,4],[90,3.4],[110,3],[150,2.4],[200,2.6],[300,1.9],
+               [400,1.2],[500,1],[700,1.5],[1000,1.6],[1500,1.8],[2000,1.6],[3000,1],[5000,.8],[7000,.4],[10000,-.6],[13000,-1.2],
+               [16000,-2.5],[18000,-6],[20000,-11]];
+  // Gentle undulation everywhere, a handful of sharp peaks where a mix has
+  // them (an instrument's fundamentals, a resonance), and only a little
+  // fine ripple -- most of the line is the slow part.
+  var DETAIL = [];
+  for (var b = 0; b < 28; b++) DETAIL.push({ f: Math.log10(70) + rnd() * 2.3, w: .035 + rnd() * .07, g: (rnd() - .4) * 1.6 });
+  [[190, 3.2], [330, 3.4], [128, 1.6], [1320, 1.8], [2650, 1.4], [5600, 1.1], [760, 1.2]].forEach(function(p){
+    DETAIL.push({ f: Math.log10(p[0]), w: .006 + rnd() * .004, g: p[1] });
+  });
+  for (var b = 0; b < 46; b++) DETAIL.push({ f: Math.log10(150) + rnd() * 2.0, w: .005 + rnd() * .008, g: .15 + rnd() * .45 });
+  for (var b = 0; b < 26; b++) DETAIL.push({ f: Math.log10(400) + rnd() * .9, w: .012 + rnd() * .014, g: .4 + rnd() * .7 });
+  for (var b = 0; b < 60; b++) DETAIL.push({ f: Math.log10(4500) + rnd() * .55, w: .003 + rnd() * .004, g: (rnd() - .35) * 1.1 });
+  function spectrum(){
+    for (var i = 0; i < N; i++){
+      var lf = Math.log10(FREQ[i]), k = 0;
+      while (k < SHAPE.length - 2 && Math.log10(SHAPE[k + 1][0]) < lf) k++;
+      var l0 = Math.log10(SHAPE[k][0]), l1 = Math.log10(SHAPE[k + 1][0]), t = Math.max(0, Math.min(1, (lf - l0) / (l1 - l0)));
+      var v = SHAPE[k][1] + (SHAPE[k + 1][1] - SHAPE[k][1]) * (t * t * (3 - 2 * t));
+      for (var d = 0; d < DETAIL.length; d++){ var dd = DETAIL[d], z = (lf - dd.f) / dd.w; if (z > -4 && z < 4) v += dd.g * Math.exp(-z * z); }
+      SPEC[i] = v;
+    }
+    var prev = SPEC[0];
+    for (var i = 1; i < N - 1; i++){ var cur = SPEC[i]; SPEC[i] = (prev + 2 * cur + SPEC[i + 1]) / 4; prev = cur; }
+  }
+  // The spectrum is drawn on a wider decibel scale than the curve, so the
+  // ribbon between what goes in and what comes out is about a third of the
+  // curve's depth, as in the plug-in (measured on its screenshots).
+  var RIBBON = .32;
+
+  var HEAD = 0, FOOT = 22, RIGHT = 30;
+  function X(i){ return i / (N - 1) * (W - 0); }
+  function xOfF(f){ return Math.log(f / 20) / Math.log(1000) * W; }
+  function Y(db){ var top = 14, bot = H - FOOT; return top + (bot - top) * (0.5 - db / (2 * range)); }
+  var hoverX = -1, hoverA = 0, dirty = true, last = 0, running = false, visible = true;
+
+  cv.addEventListener('pointermove', function(e){ var r = cv.getBoundingClientRect(); hoverX = e.clientX - r.left; if (hoverX > W - RIGHT) hoverX = -1; dirty = true; });
+  cv.addEventListener('pointerleave', function(){ hoverX = -1; dirty = true; });
+
+  function updateRange(){
+    var peak = 0; for (var i = 0; i < N; i++) peak = Math.max(peak, Math.abs(target[i]));
+    var want = peak > 10 ? 24 : peak > 5 ? 12 : 6;
+    if (want > range) range = want; else if (peak < range * .35) range = Math.max(want, 6);
+  }
+
+  function label(x, y, db, f, col, sub, above, alpha){
+    ctx.save(); ctx.globalAlpha = alpha;
+    var big = (db > 0 ? '+' : db < 0 ? '−' : '+') + Math.abs(db).toFixed(1) + ' dB';
+    var small = f >= 1000 ? (f / 1000).toFixed(f >= 10000 ? 1 : 2) + ' kHz' : Math.round(f) + ' Hz';
+    var ty = above ? y - 24 : y + 22;
+    if (ty < 16) ty = y + 22;
+    var tx = Math.max(32, Math.min(W - RIGHT - 34, x));
+    ctx.textAlign = 'center'; ctx.lineJoin = 'round';
+    ctx.font = '700 14px -apple-system,BlinkMacSystemFont,sans-serif';
+    ctx.strokeStyle = 'rgba(236,238,240,.95)'; ctx.lineWidth = 5; ctx.strokeText(big, tx, ty); ctx.fillStyle = col; ctx.fillText(big, tx, ty);
+    ctx.font = '500 10px -apple-system,BlinkMacSystemFont,sans-serif';
+    ctx.strokeText(small, tx, ty + 12); ctx.fillStyle = sub; ctx.fillText(small, tx, ty + 12);
+    ctx.beginPath(); ctx.arc(x, y, 4.6, 0, 6.283); ctx.fillStyle = '#fff'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = col; ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    var y0 = Y(0), bot = H - FOOT;
+    // grid
+    ctx.lineWidth = 1;
+    var fl = [20,50,100,200,500,1000,2000,5000,10000,20000], fn = ['20','50','100','200','500','1k','2k','5k','10k','20k'];
+    ctx.strokeStyle = 'rgba(154,160,168,.22)';
+    fl.forEach(function(f){ var x = Math.round(xOfF(f)) + .5; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, bot); ctx.stroke(); });
+    var step = range === 24 ? 6 : 3;
+    ctx.font = '500 10px -apple-system,BlinkMacSystemFont,sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = '#878e96';
+    for (var d = step; d < range; d += step){
+      [d, -d].forEach(function(v){ var y = Math.round(Y(v)) + .5; ctx.strokeStyle = 'rgba(154,160,168,.22)'; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        ctx.fillText((v > 0 ? '+' : '−') + Math.abs(v), W - 6, y + 3.5); });
+    }
+    ctx.textAlign = 'left';
+    var lastX = -99;
+    fl.forEach(function(f, k){
+      var x = xOfF(f) + 4, w = ctx.measureText(fn[k]).width;
+      if (k === fl.length - 1) { x = W - 6 - w; }
+      if (x < lastX + 8) return;
+      if (k === fl.length - 2 && x + w > W - 6 - ctx.measureText(fn[k + 1]).width - 8) return;
+      ctx.fillText(fn[k], x, H - 7); lastX = x + w;
+    });
+
+    // spectrum: what went in, grey; where what came out sits above or below, coloured
+    var sTop = function(i){ return Y(SPEC[i] * (range / 12)); };
+    ctx.beginPath(); ctx.moveTo(0, bot);
+    for (var i = 0; i < N; i++) ctx.lineTo(X(i), Math.min(bot, sTop(i)));
+    ctx.lineTo(W, bot); ctx.closePath();
+    var gS = ctx.createLinearGradient(0, 0, 0, bot); gS.addColorStop(0, 'rgba(92,99,107,.16)'); gS.addColorStop(1, 'rgba(92,99,107,.06)');
+    ctx.fillStyle = gS; ctx.fill();
+    // The ribbon between the spectrum going in and coming out, as in the
+    // plug-in, cut where the EQ crosses 0 dB (worked out between points, so
+    // the colour changes on a clean edge) and filled with the side's colour.
+    var oDb = function(i){ return SPEC[i] + RIBBON * shown[i]; };
+    var yIn = function(v){ return Math.min(bot, Y(v * (range / 12))); };
+    var seg = [], segSign = 0;
+    function flush(){
+      if (seg.length > 1 && segSign){
+        var rgb = segSign > 0 ? '200,106,79' : '47,144,136';
+        ctx.beginPath();
+        seg.forEach(function(q, n){ n ? ctx.lineTo(q.x, q.a) : ctx.moveTo(q.x, q.a); });
+        for (var n = seg.length - 1; n >= 0; n--) ctx.lineTo(seg[n].x, seg[n].b);
+        ctx.closePath(); ctx.fillStyle = 'rgba(' + rgb + ',.24)'; ctx.fill();
+        ctx.beginPath(); seg.forEach(function(q, n){ n ? ctx.lineTo(q.x, q.b) : ctx.moveTo(q.x, q.b); });
+        ctx.strokeStyle = 'rgba(' + rgb + ',.6)'; ctx.lineWidth = 1; ctx.stroke();
+      }
+      seg = [];
+    }
+    for (var i = 0; i < N; i++){
+      var e = shown[i], sg = e > .02 ? 1 : e < -.02 ? -1 : 0;
+      if (i > 0 && sg !== segSign){
+        // Where between this point and the last the EQ crossed 0 dB.
+        var e0 = shown[i - 1], f = e0 === e ? 0 : e0 / (e0 - e), xc = X(i - 1) + (X(i) - X(i - 1)) * f;
+        var sc = SPEC[i - 1] + (SPEC[i] - SPEC[i - 1]) * f, yc = yIn(sc);
+        seg.push({ x: xc, a: yc, b: yc }); flush(); segSign = sg; seg.push({ x: xc, a: yc, b: yc });
+      } else if (i === 0) segSign = sg;
+      seg.push({ x: X(i), a: yIn(SPEC[i]), b: yIn(oDb(i)) });
+    }
+    flush();
+    ctx.beginPath(); for (var i = 0; i < N; i++){ var yy = Math.min(bot, sTop(i)); i ? ctx.lineTo(X(i), yy) : ctx.moveTo(0, yy); }
+    ctx.strokeStyle = 'rgba(92,99,107,.42)'; ctx.lineWidth = 1; ctx.stroke();
+
+    // zero line
+    ctx.strokeStyle = 'rgba(124,132,142,.75)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(0, Math.round(y0) + .5); ctx.lineTo(W, Math.round(y0) + .5); ctx.stroke();
+
+    // fills between the curve and 0 dB, fading towards the line
+    function fill(sign, rgb){
+      ctx.save(); ctx.beginPath(); ctx.rect(0, sign > 0 ? 0 : y0, W, sign > 0 ? y0 : H - y0); ctx.clip();
+      ctx.beginPath(); ctx.moveTo(0, y0);
+      for (var i = 0; i < N; i++) ctx.lineTo(X(i), Y(shown[i]));
+      ctx.lineTo(W, y0); ctx.closePath();
+      var lim = Y(sign > 0 ? range * .7 : -range * .7);
+      var g = ctx.createLinearGradient(0, lim, 0, y0); g.addColorStop(0, 'rgba(' + rgb + ',.34)'); g.addColorStop(1, 'rgba(' + rgb + ',.07)');
       ctx.fillStyle = g; ctx.fill(); ctx.restore();
-    });
-    glow(pts, o.glow || COL.boost, 2.4 * uiScale(w));
-    if (o.tags){
-      var hi = -1, lo = -1;
-      for (k = 0; k < N; k++){ if (FREQ[k] < 30 || FREQ[k] > 16000) continue; if (hi < 0 || o.curve[k] > o.curve[hi]) hi = k; if (lo < 0 || o.curve[k] < o.curve[lo]) lo = k; }
-      [[hi,1],[lo,-1]].forEach(function(t){
-        var i = t[0], v = o.curve[i]; if (i < 0 || (t[1] > 0 ? v < .4 : v > -.4)) return;
-        var px = X(i), py = Y(v), col = t[1] > 0 ? '168,84,60' : '35,122,115', f = FREQ[i];
-        ctx.globalAlpha = a * o.tags;
-        ctx.beginPath(); ctx.arc(px, py, 5, 0, 7); ctx.fillStyle = '#fbfbfc'; ctx.fill(); ctx.strokeStyle = rgba(col, 1); ctx.lineWidth = 2; ctx.stroke();
-        ctx.textAlign = 'center'; ctx.fillStyle = rgba(col, 1); ctx.font = '600 ' + (o.tagSize || 16) + 'px ' + MONO;
-        // the level over the frequency, above a boost and below a cut, as the plug-in tags them
-        var ty = t[1] > 0 ? py - 29 : py + 30;
-        ctx.fillText((v > 0 ? '+' : '−') + Math.abs(v).toFixed(1) + ' dB', clamp(px, x0 + 50, x0 + w - 50), ty);
-        ctx.font = '400 11px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5);
-        ctx.fillText(f >= 1000 ? (f/1000).toFixed(2) + ' kHz' : Math.round(f) + ' Hz', clamp(px, x0 + 50, x0 + w - 50), ty + 16);
-        ctx.globalAlpha = a;
-      });
     }
-  }
-  ctx.restore();
-}
-function wave(x, t, kind){
-  if (kind === 1) return Math.sin(x * .03 + t * 2.4) * .6 + Math.sin(x * .09 - t * 3.7) * .18 + Math.sin(x * .2 + t * 6) * .22;
-  return Math.sin(x * .03 + t * 2.4) * .45 + Math.sin(x * .09 - t * 3.7) * .3 + Math.sin(x * .2 + t * 6) * .16 + Math.sin(x * .51 + t * 9) * .09;
-}
-function aura(x, y, r, c, a){ var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgba(c, a)); g.addColorStop(1, rgba(c, 0)); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+    fill(1, '200,106,79'); fill(-1, '47,144,136');
 
-/* ------------------------------------------------ scenes. Each gets t in 0..1 and the time in seconds. */
-var CH = 9, NAMES = ['SIGNAL','THE DIAL','TWO LISTENERS','THE DIFFERENCE','DOCK','EVIDENCE','STEREO','NULL','MIRROR'];
-var small = function(){ return W < 760; };
-var region = function(){ return small() ? { x: 16, y: H * .44, w: W - 32, h: H * .34 } : { x: W * .08, y: H * .38, w: W * .84, h: H * .44 }; };
-
-// One clock for everything: the frame's own timestamp. The opening starts on the first frame drawn.
-var introT0 = 0, NOW = 0;
-function sceneSignal(t, s){
-  var intro = eout((NOW - introT0) / 1900), y = small() ? H * .7 : H * .74;
-  var len = W * .5 * Math.max(intro, 0.001), amp = H * (small() ? .11 : .09) * eout((NOW - introT0 - 600) / 1600) * (1 - eio(seg(t, .55, .95)));
-  aura(W / 2, y, W * .45, COL.boost, .04 * intro); aura(W * .62, y + 40, W * .35, COL.cut, .035 * intro);
-  // the 0 dB line, drawn out from the middle
-  ctx.strokeStyle = rgba(COL.ink, .35); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(W / 2 - len, y); ctx.lineTo(W / 2 + len, y); ctx.stroke();
-  if (amp > .5){
-    var pts = [], refl = [];
-    for (var x = W / 2 - len; x <= W / 2 + len; x += 3){
-      var env = Math.pow(Math.sin(Math.PI * (x - (W / 2 - len)) / (2 * len)), 1.5), v = wave(x, s) * amp * env;
-      pts.push([x, y - Math.abs(v) - v * .2]); refl.push([x, y + Math.abs(v) * .9 + v * .18]);
-    }
-    glow(pts, COL.boost, 1.6);
-    ctx.save(); ctx.globalAlpha = .22; path(refl); ctx.strokeStyle = '#2b3238'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
-  }
-}
-function knob(cx, cy, R, n, t){
-  // ticks and printed scale
-  ctx.save(); ctx.translate(cx, cy);
-  for (var i = 0; i <= 24; i++){ var a = (-135 + i * 11.25) * Math.PI / 180, major = i % 6 === 0; ctx.strokeStyle = rgba(COL.ink, major ? .6 : .2); ctx.lineWidth = major ? 2 : 1;
-    ctx.beginPath(); ctx.moveTo(Math.sin(a) * R * 1.12, -Math.cos(a) * R * 1.12); ctx.lineTo(Math.sin(a) * R * (major ? 1.24 : 1.19), -Math.cos(a) * R * (major ? 1.24 : 1.19)); ctx.stroke(); }
-  ctx.fillStyle = rgba(COL.ink, .55); ctx.font = '500 ' + Math.max(10, R * .11) + 'px ' + MONO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ['−12','−6','0','+6','+12'].forEach(function(l, i){ var a = (-135 + i * 67.5) * Math.PI / 180; ctx.fillText(l, Math.sin(a) * R * 1.42, -Math.cos(a) * R * 1.42); });
-  ctx.textBaseline = 'alphabetic';
-  // value arc
-  var an = (-135 + 270 * n) * Math.PI / 180, a0 = 0;
-  ctx.strokeStyle = rgba(COL.ink, .75); ctx.lineWidth = 3; ctx.shadowBlur = 0;
-  ctx.beginPath(); ctx.arc(0, 0, R * 1.05, a0 - Math.PI / 2, an - Math.PI / 2, an < a0); ctx.stroke(); ctx.shadowBlur = 0;
-  // body
-  var g = ctx.createRadialGradient(-R * .3, -R * .35, R * .1, 0, 0, R); g.addColorStop(0, '#ffffff'); g.addColorStop(.55, '#eef0f2'); g.addColorStop(1, '#d3d7db');
-  ctx.shadowColor = 'rgba(27,31,35,.28)'; ctx.shadowBlur = 44; ctx.shadowOffsetY = 20;
-  ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fillStyle = g; ctx.fill(); ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = 'rgba(60,66,72,.22)'; ctx.lineWidth = 1; ctx.stroke();
-  // knurling
-  ctx.save(); ctx.rotate(an); for (i = 0; i < 48; i++){ ctx.rotate(Math.PI * 2 / 48); ctx.strokeStyle = 'rgba(60,66,72,.09)'; ctx.beginPath(); ctx.moveTo(0, -R * .98); ctx.lineTo(0, -R * .86); ctx.stroke(); }
-  var cg = ctx.createRadialGradient(-R * .2, -R * .25, 0, 0, 0, R * .74); cg.addColorStop(0, '#fbfbfc'); cg.addColorStop(1, '#e2e5e8');
-  ctx.beginPath(); ctx.arc(0, 0, R * .74, 0, 7); ctx.fillStyle = cg; ctx.fill();
-  ctx.strokeStyle = '#1b1f23'; ctx.lineWidth = Math.max(3, R * .05); ctx.lineCap = 'round'; ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
-  ctx.beginPath(); ctx.moveTo(0, -R * .3); ctx.lineTo(0, -R * .7); ctx.stroke(); ctx.restore();
-  ctx.restore();
-  ctx.fillStyle = rgba(COL.ink, .45); ctx.font = '500 11px ' + MONO; ctx.textAlign = 'center'; ctx.fillText('GAIN  dB', cx, cy + R * 1.75);
-}
-function sceneDial(t, s){
-  var n = .5 + .25 * eio(seg(t, .08, .6)), g = (n - .5) * 24, sm = small();
-  var R = sm ? W * .16 : Math.min(W, H) * .15, kx = sm ? W * .5 : W * .27, ky = sm ? H * .4 : H * .6;
-  aura(kx, ky, R * 3, COL.boost, .03 + .03 * eio(seg(t, .08, .6)));
-  knob(kx, ky, R, n, t);
-  // low enough that the readouts above it clear the two-line caption
-  var r = sm ? { x: 16, y: H * .7, w: W - 32, h: H * .22 } : { x: W * .47, y: H * .47, w: W * .46, h: H * .33 };
-  var measured = mix(SH_FLAT, SH_BELL, g / 6);
-  display({ x: r.x, y: r.y, w: r.w, h: r.h, range: 9, curve: measured, spec: spectrum(s * .8, 1), specA: .7, tags: 0, blur: 24 });
-  // dial vs measured readouts
-  var show = seg(t, .6, .75);
-  if (show > 0){
-    ctx.save(); ctx.globalAlpha = show; ctx.textAlign = 'left'; var tx = r.x, ty = r.y - 16;
-    ctx.font = '500 ' + (sm ? 11 : 13) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .55); ctx.fillText('DIAL       +6.0 dB   1.20 kHz', tx, ty - (sm ? 16 : 20));
-    ctx.fillStyle = rgba(COL.boost, 1); ctx.fillText('MEASURED   +' + (g * .967).toFixed(1) + ' dB   1.24 kHz', tx, ty);
+    // the curve, with a soft shadow under it
+    ctx.save();
+    ctx.shadowColor = 'rgba(27,31,35,.22)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
+    ctx.beginPath(); for (var i = 0; i < N; i++) i ? ctx.lineTo(X(i), Y(shown[i])) : ctx.moveTo(0, Y(shown[i]));
+    ctx.strokeStyle = '#2b3238'; ctx.lineWidth = 2.4; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
     ctx.restore();
-  }
-}
-function node(x, y, w, h, label, sub, dark, a){
-  if (a <= 0) return; ctx.save(); ctx.globalAlpha = a;
-  ctx.fillStyle = dark ? '#2b3238' : '#fbfbfc'; ctx.strokeStyle = dark ? '#2b3238' : 'rgba(60,66,72,.22)'; ctx.shadowColor = 'rgba(27,31,35,.18)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
-  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w/2, y - h/2, w, h, 12) : ctx.rect(x - w/2, y - h/2, w, h); ctx.fill(); ctx.stroke();
-  ctx.shadowColor = 'transparent'; ctx.textAlign = 'center'; ctx.fillStyle = dark ? '#eceef0' : rgba(COL.ink, 1); ctx.font = '700 ' + (small() ? 11 : 14) + 'px ' + FONT; ctx.fillText(label, x, y + (sub ? -2 : 5));
-  if (sub){ ctx.font = '400 ' + (small() ? 10 : 11) + 'px ' + MONO; ctx.fillStyle = dark ? 'rgba(236,238,240,.65)' : rgba(COL.ink, .5); ctx.fillText(sub, x, y + 15); }
-  ctx.restore();
-}
-function sceneListeners(t, s){
-  var sm = small(), y = sm ? H * .5 : H * .56, xs = [W * (sm ? .18 : .26), W * .5, W * (sm ? .82 : .74)], nw = sm ? W * .24 : 150, nh = sm ? 50 : 60;
-  var a0 = eout(seg(t, 0, .12)), a1 = eout(seg(t, .1, .22)), a2 = eout(seg(t, .18, .3)), up = eio(seg(t, .5, .62));
-  y -= up * (sm ? H * .06 : H * .03);
-  // the signal, grey before the EQ, glowing after it
-  var pre = [], post = [];
-  for (var x = 0; x <= W; x += 3){ var after = x > xs[1]; (after ? post : pre).push([x, y + wave(x, s, after ? 1 : 0) * (sm ? 18 : 30) * (after ? 1.2 : 1)]); }
-  ctx.save(); path(pre); ctx.strokeStyle = rgba(COL.ink, .35); ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore();
-  glow(post, COL.boost, 1.6, 0, .9);
-  node(xs[0], y, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの前' : 'before', false, a0);
-  node(xs[1], y, nw * .9, nh, LANG === 'ja' ? 'あなたのEQ' : 'Your EQ', '', true, a1);
-  node(xs[2], y, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの後ろ' : 'after', false, a2);
-  // they find each other, and line up
-  var link = seg(t, .52, .62);
-  if (link > 0){
-    // the arc's top stays under the caption's line of text: on a short window it flattens
-    var capP = document.querySelector('.cap[data-ch="2"] p:not(.k)'), arc = 64;
-    if (capP && !sm) arc = clamp(2 * (y - nh / 2 - 15 - capP.getBoundingClientRect().bottom), 20, 64);
-    ctx.save(); ctx.globalAlpha = link; ctx.setLineDash([4, 7]); ctx.lineDashOffset = -s * 40; ctx.strokeStyle = rgba(COL.cut, .9); ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(xs[0], y - nh / 2 - 6); ctx.quadraticCurveTo(xs[1], y - nh / 2 - (sm ? 44 : arc), xs[2], y - nh / 2 - 6); ctx.stroke(); ctx.restore();
-    var al = eio(seg(t, .64, .9)), sy = y + (sm ? 110 : 150), sw = sm ? W * .8 : W * .44, sx = W / 2 - sw / 2, off = lerp(sw * .3, 0, al);
-    [[rgba(COL.ink, .3), 0], ['#2b3238', off]].forEach(function(r, n){
-      var pts = []; for (var xx = 0; xx <= sw; xx += 2){ var tx = xx - r[1], env = Math.exp(-Math.pow((tx - sw * .45) / (sw * .13), 2)); pts.push([sx + xx, sy + Math.sin(tx * .06) * env * (sm ? 24 : 38)]); }
-      ctx.save(); ctx.globalAlpha = link; path(pts); ctx.strokeStyle = r[0]; ctx.lineWidth = n ? 2 : 1.5; ctx.stroke(); ctx.restore();
+
+    // named tags: the largest boost and cut
+    var hi = -1, lo = -1;
+    for (var i = 2; i < N - 2; i++){ if (shown[i] > .3 && (hi < 0 || shown[i] > shown[hi])) hi = i; if (shown[i] < -.3 && (lo < 0 || shown[i] < shown[lo])) lo = i; }
+    if (shown[N - 1] > .3 && (hi < 0 || shown[N - 1] > shown[hi] + .05)) hi = N - 1;
+    if (shown[0] > .3 && (hi < 0 || shown[0] > shown[hi] + .05)) hi = 0;
+    var hov = hoverX >= 0 ? Math.max(0, Math.min(N - 1, Math.round(hoverX / W * (N - 1)))) : -1;
+    hoverA += ((hov >= 0 ? 1 : 0) - hoverA) * .3;
+    var named = 1 - .6 * hoverA;
+    [hi, lo].forEach(function(k){
+      if (k < 0) return;
+      if (hov >= 0 && Math.abs(X(k) - X(hov)) < 70) return;
+      var boost = shown[k] > 0;
+      label(X(k), Y(shown[k]), shown[k], FREQ[k], boost ? '#a8543c' : '#237a73', '#878e96', boost, named);
     });
-    ctx.save(); ctx.globalAlpha = link; ctx.textAlign = 'center'; ctx.font = '500 13px ' + MONO; ctx.fillStyle = al >= 1 ? rgba(COL.cut, 1) : rgba(COL.ink, .6);
-    ctx.fillText('lag ' + Math.round(lerp(33792, 0, al)).toLocaleString('en-US') + ' sp  ·  ' + (al >= 1 ? 'settled' : 'measuring…'), W / 2, sy + (sm ? 52 : 70)); ctx.restore();
+    if (hov >= 0) label(X(hov), Y(shown[hov]), shown[hov], FREQ[hov], '#3c4248', '#878e96', shown[hov] >= 0, Math.min(1, hoverA * 1.4));
   }
-}
-function sceneDifference(t, s){
-  var r = region(), inS = spectrum(s * .6, 1.3), outS = new Float32Array(N), k;
-  for (k = 0; k < N; k++) outS[k] = inS[k] + SH_FLOW[k];
-  var a = eout(seg(t, 0, .15)), sub = eio(seg(t, .28, .5)), lift = eio(seg(t, .55, .85));
-  // before: the two spectra; the gap between them is lit
-  if (lift < 1){
-    ctx.save(); ctx.globalAlpha = a * (1 - lift);
-    var X = function(i){ return r.x + i / (N - 1) * r.w; }, SY = function(v){ return r.y + r.h - clamp((v + 60) / 60, 0, 1) * r.h * .82; };
-    for (k = 0; k < N - 1; k++){ var d = SH_FLOW[k]; if (Math.abs(d) < .2) continue;
-      ctx.fillStyle = rgba(d > 0 ? COL.boost : COL.cut, .25 * sub); ctx.beginPath(); ctx.moveTo(X(k), SY(inS[k])); ctx.lineTo(X(k+1), SY(inS[k+1])); ctx.lineTo(X(k+1), SY(outS[k+1])); ctx.lineTo(X(k), SY(outS[k])); ctx.closePath(); ctx.fill(); }
-    ctx.setLineDash([3, 5]); path(inS.map ? Array.prototype.map.call(inS, function(v, i){ return [X(i), SY(v)]; }) : []); ctx.strokeStyle = rgba(COL.ink, .55); ctx.lineWidth = 1.3; ctx.stroke(); ctx.setLineDash([]);
-    path(Array.prototype.map.call(outS, function(v, i){ return [X(i), SY(v)]; })); ctx.strokeStyle = rgba(COL.ink, .9); ctx.lineWidth = 1.8; ctx.stroke();
-    ctx.font = '500 12px ' + MONO; ctx.textAlign = 'left'; ctx.fillStyle = rgba(COL.ink, .5); ctx.fillText(LANG === 'ja' ? '--- 前の音' : '--- before', r.x, r.y - 10); ctx.fillStyle = rgba(COL.ink, .9); ctx.fillText(LANG === 'ja' ? '—— 後ろの音' : '—— after', r.x + 130, r.y - 10);
-    ctx.restore();
-  }
-  // after: the difference rises into the curve
-  if (lift > 0) display({ x: r.x, y: r.y, w: r.w, h: r.h, range: 9, curve: mix(SH_FLAT, SH_FLOW, lift), spec: outS, specA: .8, alpha: lift, tags: seg(t, .82, .95), labels: !small(), bleed: W });
-}
-var BEATS = [
-  { c: SH_ZERO, v: '+1.1', u: 'dB', who: ['Tube program EQ · every knob at 0', '真空管系プログラムEQ · ツマミはすべて 0'], what: ['Every knob at zero. Still not flat.', 'すべて 0 でも、<wbr>フラットに<wbr>ならない。'], col: '168,84,60' },
-  { c: SH_TRICK, v: '−0.7', u: 'dB', who: ['The classic low-end trick · 30 Hz', '定番の低域テクニック · 30 Hz'], what: ['Boost and cut at once don’t cancel.', 'ブーストと<wbr>カットを<wbr>同時に<wbr>かけても、<wbr>打ち消し<wbr>合わない。'], col: '35,122,115' },
-  { c: SH_PRES, v: '1.21', u: 'kHz', who: ['Mastering EQ · presence band set to 1.2 kHz', 'マスタリングEQ · プレゼンスを 1.2 kHz に'], what: ['And sometimes, the dial is right.', 'そして、<wbr>目盛り<wbr>どおりの<wbr>ときも<wbr>ある。'], col: '168,84,60' }
-];
-var numEl = document.getElementById('num'), numCap = document.getElementById('numCap'), numWho = document.getElementById('numWho'), numWhat = document.getElementById('numWhat'), shownBeat = -1;
-function sceneEvidence(t, s, active){
-  var r = small() ? { x: 16, y: H * .52, w: W - 32, h: H * .3 } : { x: W * .08, y: H * .46, w: W * .84, h: H * .38 };
-  // A short opening first, while its caption is up: the line flat, the music
-  // back (the Dock's scene ends on it). The three beats follow.
-  var bt = seg(t, .22, 1) * 3, b = Math.min(2, Math.floor(bt)), bl = bt - b, morph = b > 0 ? eio(seg(bl, 0, .3)) : 1;
-  var cur = b > 0 ? mix(BEATS[b - 1].c, BEATS[b].c, morph) : BEATS[0].c;
-  var a = eout(seg(t, .2, .3));
-  aura(W * .7, r.y + r.h / 2, W * .4, BEATS[b].col, .03);
-  display({ x: r.x, y: r.y, w: r.w, h: r.h, range: 7, curve: mix(SH_FLAT, cur, a), spec: spectrum(s * .7, 2 + b), specA: .6, tags: seg(bl, .3, .45), glow: BEATS[b].col, labels: !small(), bleed: W });
-  if (!active) return;
-  if (b !== shownBeat || NUMS_DIRTY){ shownBeat = b; NUMS_DIRTY = false; var B = BEATS[b], L = LANG === 'ja' ? 1 : 0;
-    numEl.innerHTML = B.v + '<small>' + B.u + '</small>'; numEl.style.color = 'rgb(' + B.col + ')'; numWho.textContent = B.who[L]; numWhat.innerHTML = B.what[L]; }
-  // the number rolls in with each beat
-  var inA = t < .22 ? 0 : eout(seg(bl, .02, .22)), outA = b < 2 ? 1 - seg(bl, .9, 1) : 1;
-  numEl.style.opacity = inA * outA; numEl.style.transform = 'translateY(' + ((1 - inA) * 40) + 'px)'; numEl.style.filter = 'blur(' + ((1 - inA) * 10) + 'px)';
-  numCap.style.opacity = (t < .22 ? 0 : eout(seg(bl, .12, .3))) * outA; numCap.style.transform = 'translateY(' + ((1 - eout(seg(bl, .12, .3))) * 20) + 'px)';
-}
-function sceneStereo(t, s){
-  // this caption has a line of text under it, so the display starts lower
-  var r = small() ? region() : { x: W * .08, y: H * .52, w: W * .84, h: H * .34 }, open = eio(seg(t, .15, .55)) * (0.75 + .25 * Math.sin(s * 1.4)), c = curve([{ t:'bell', f:2400, g:3, q:.9 }, { t:'bell', f:160, g:-1.6, q:.8 }]), bnd = new Float32Array(N);
-  for (var i = 0; i < N; i++){ var lf = Math.log(FREQ[i] / 2400) / Math.LN2; bnd[i] = open * 4 * Math.exp(-lf * lf / 1.5); }
-  display({ x: r.x, y: r.y, w: r.w, h: r.h, range: 9, curve: c, band: bnd, spec: spectrum(s * .6, 3), specA: .6, tags: 0, labels: !small(), glow: COL.cut, bleed: W });
-  ctx.save(); ctx.globalAlpha = seg(t, .3, .5); ctx.textAlign = 'right'; ctx.font = '600 14px ' + MONO; ctx.fillStyle = rgba(COL.ink, .85); ctx.fillText('M / S', r.x + r.w, r.y - 12);
-  ctx.textAlign = 'left'; ctx.font = '400 12px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5); ctx.fillText('2.40 kHz    M +' + (3 - open * 1.2).toFixed(1) + '    S +' + (3 + open * 4).toFixed(1), r.x, r.y - 12); ctx.restore();
-}
-var zeroEl = document.getElementById('zero');
-function sceneNull(t, s, active){
-  var mid = H * .56, sep = 1 - eio(seg(t, .35, .6)), inv = eio(seg(t, .12, .3)), gap = H * .16 * sep, amp = H * .09, flat = seg(t, .58, .68);
-  var A = [], B = [];
-  for (var x = 0; x <= W; x += 3){ var v = wave(x * .8, s * .7, 0) * amp; A.push([x, mid - gap + v]); B.push([x, mid + gap + v * lerp(1, -1, inv)]); }
-  if (sep > .02){ glow(A, COL.muted, 1.6, 0, Math.min(1, sep * 3)); glow(B, COL.ink, 1.6, 0, Math.min(1, sep * 3));
-    ctx.save(); ctx.globalAlpha = sep; ctx.font = '500 12px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5); ctx.textAlign = 'left';
-    ctx.fillText(LANG === 'ja' ? '挿して書き出した音' : 'bounced with EQ Mirror', 28, mid - gap - amp - 14);
-    ctx.fillText(LANG === 'ja' ? '外して書き出した音' + (inv > .5 ? '（反転）' : '') : 'bounced without' + (inv > .5 ? ' (inverted)' : ''), 28, mid + gap + amp + 26); ctx.restore(); }
-  if (flat > 0){ aura(W / 2, mid, W * .5, COL.cut, .12 * flat); glow([[0, mid], [W, mid]], COL.cut, 2.4 * flat + .5, 30, flat); }
-  if (!active) return;
-  var za = eout(seg(t, .66, .8)); zeroEl.style.opacity = za; zeroEl.style.transform = 'translate(-50%,-58%) scale(' + (1.25 - .25 * za) + ')'; zeroEl.style.filter = 'blur(' + ((1 - za) * 16) + 'px)';
-}
-// The Dock. The two EQ Mirrors of scene 02 close in on the EQ between them
-// and become one window around it; the window opens, the curve on top and
-// the EQ's own panel below. Nothing is playing -- the line through it stays
-// flat -- and still the curve follows the knob.
-var SH_DOCK = curve([{ t:'bell', f:1240, g:6, q:1.1 }]);
-function rr(x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
-function mixCol(a, b, t){ return 'rgb(' + a.map(function(v, i){ return Math.round(lerp(v, b[i], t)); }).join(',') + ')'; }
-function sceneDock(t, s){
-  var sm = small(), a = 1;
-  // first the hand-off: scene 03's curve settles back to the flat line, and
-  // the three cards of scene 02 rise onto it one after another
-  var h = eio(seg(t, 0, .16)), c0 = eout(seg(t, .1, .2)), c1 = eout(seg(t, .13, .23)), c2 = eout(seg(t, .16, .26));
-  var m = eio(seg(t, .24, .4)), o = eio(seg(t, .46, .64)), turn = eio(seg(t, .66, .85));
-  // and at the end the window gives way: its curve settles back to flat and
-  // opens out to the next scene's full width, the music starting under it
-  var x = eio(seg(t, .88, 1));
-  // the three cards, laid out as in scene 02
-  // on the very line scene 03's curve settles to
-  var y0 = region().y + region().h / 2, xs = [W * (sm ? .18 : .26), W * .5, W * (sm ? .82 : .74)], nw = sm ? W * .24 : 150, nh = sm ? 50 : 60;
-  // where the window ends up, below the captions
-  var F = sm ? { x: 16, y: H * .55, w: W - 32, h: H * .37 } : { x: W * .22, y: H * .52, w: W * .56, h: H * .42 };
-  var head = sm ? 30 : 40;
-  if (h < 1){
-    var inS = spectrum(s * .6, 1.3), outS = new Float32Array(N);
-    for (var q = 0; q < N; q++) outS[q] = inS[q] + SH_FLOW[q] * (1 - h);
-    display({ x: region().x, y: region().y, w: region().w, h: region().h, range: 9, curve: mix(SH_FLOW, SH_FLAT, h), spec: outS, specA: .8 * (1 - h),
-              alpha: 1 - eio(seg(t, .08, .2)), tags: 1 - seg(t, 0, .06), labels: !sm, bleed: W });
-  }
-  // the same light behind it as the other scenes, warm above and cool below
-  var cx = W / 2, cy = lerp(y0, F.y + F.h / 2, o);
-  aura(cx, cy - H * .05, W * .42, COL.boost, .05 * a * m); aura(cx + W * .08, cy + H * .08, W * .34, COL.cut, .045 * a * m);
-  // the frame: from around the three cards, to around the EQ, to the window
-  var hug = { x: W / 2 - nw * .95, y: y0 - nh * 1.05, w: nw * 1.9, h: nh * 2.1 };
-  var all = { x: xs[0] - nw / 2, y: y0 - nh / 2, w: xs[2] - xs[0] + nw, h: nh };
-  var fr = o > 0 ? { x: lerp(hug.x, F.x, o), y: lerp(hug.y, F.y, o), w: lerp(hug.w, F.w, o), h: lerp(hug.h, F.h, o) }
-                 : { x: lerp(all.x, hug.x, m), y: lerp(all.y, hug.y, m), w: lerp(all.w, hug.w, m), h: lerp(all.h, hug.h, m) };
-  // the flat line through its middle: no audio, all the way through
-  var ly0 = fr.y + fr.h / 2;
-  ctx.save(); ctx.globalAlpha = seg(t, .08, .18) * (1 - o) * .8; ctx.strokeStyle = rgba(COL.ink, .3); ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(0, ly0); ctx.lineTo(W, ly0); ctx.stroke(); ctx.restore();
-  ctx.save(); ctx.globalAlpha = a * m * (1 - x);
-  ctx.shadowColor = 'rgba(27,31,35,.2)'; ctx.shadowBlur = 44; ctx.shadowOffsetY = 18;
-  rr(fr.x, fr.y, fr.w, fr.h, 14); ctx.fillStyle = '#f7f8f9'; ctx.fill();
-  ctx.shadowColor = 'transparent'; ctx.strokeStyle = 'rgba(60,66,72,.2)'; ctx.lineWidth = 1; ctx.stroke();
-  // its name, in the plug-in's own weights
-  var ny = fr.y + (o > 0 ? lerp(18, head * .66, o) : 18), fs = sm ? 12 : 14;
-  ctx.textAlign = 'left'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, 1); ctx.fillText('EQ', fr.x + 16, ny);
-  var wEQ = ctx.measureText('EQ ').width; ctx.font = '400 ' + fs + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, .7); ctx.fillText('Mirror', fr.x + 16 + wEQ, ny);
-  var wM = ctx.measureText('Mirror ').width; ctx.font = '500 ' + (fs - 4) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .5); ctx.fillText('DOCK', fr.x + 16 + wEQ + wM, ny);
-  ctx.restore();
-  // the two cards slide in and fade into the frame
-  node(lerp(xs[0], W / 2 - nw * .55, m), y0 + (1 - c0) * 16, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの前' : 'before', false, c0 * (1 - m));
-  node(lerp(xs[2], W / 2 + nw * .55, m), y0 + (1 - c2) * 16, nw, nh, 'EQ Mirror', LANG === 'ja' ? 'EQの後ろ' : 'after', false, c2 * (1 - m));
-  // everything from here on stays inside the window while it opens
-  var clipped = o > 0 && o < 1;
-  if (clipped){ ctx.save(); rr(fr.x, fr.y, fr.w, fr.h, 14); ctx.clip(); }
-  // the window's own furniture
-  if (o > 0){
-    ctx.save(); ctx.globalAlpha = a * o * (1 - x);
-    ctx.textAlign = 'left'; ctx.font = '600 ' + (sm ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = rgba(COL.ink, 1);
-    ctx.fillText((LANG === 'ja' ? 'あなたのEQ' : 'Your EQ') + '  ▾', fr.x + (sm ? 128 : 168), fr.y + head * .66);
-    ctx.textAlign = 'right'; ctx.font = '500 ' + (sm ? 10 : 11) + 'px ' + MONO; ctx.fillStyle = rgba(COL.ink, .55);
-    ctx.fillText('■ ' + (LANG === 'ja' ? '停止中' : 'STOPPED'), fr.x + fr.w - 16, fr.y + head * .66);
-    ctx.strokeStyle = rgba(COL.ink, .08); ctx.beginPath(); ctx.moveTo(fr.x, fr.y + head); ctx.lineTo(fr.x + fr.w, fr.y + head); ctx.stroke();
-    ctx.restore();
-    var n = .5 + .25 * turn;
-    var R = small() ? { x: 16, y: H * .52, w: W - 32, h: H * .3 } : { x: W * .08, y: H * .46, w: W * .84, h: H * .38 };
-    var D = { x: fr.x + 14, y: fr.y + head, w: fr.w - 28, h: fr.h * .48 - head };
-    display({ x: lerp(D.x, R.x, x), y: lerp(D.y, R.y, x), w: lerp(D.w, R.w, x), h: lerp(D.h, R.h, x), range: lerp(sm ? 22 : 14, 7, x),
-              curve: mix(SH_FLAT, SH_DOCK, (n - .5) * 4 * (1 - x)), alpha: a * o, tags: seg(t, .76, .86) * (1 - x), tagSize: sm ? 12 : 14,
-              spec: x > 0 ? spectrum(s * .7, 2) : null, specA: .6 * x, labels: x > .5 && !small(), bleed: W * x });
-  }
-  // the EQ: a dark card, then the light panel of its own window
-  var card = { x: W / 2 - nw * .45, y: y0 - nh / 2 + (1 - c1) * 16, w: nw * .9, h: nh };
-  // inside the window as it is now, so nothing arrives ahead of it
-  var pan = { x: fr.x + 14, y: fr.y + fr.h * .48 + 6, w: fr.w - 28, h: fr.h * .52 - 20 };
-  var e = { x: lerp(card.x, pan.x, o), y: lerp(card.y, pan.y, o), w: lerp(card.w, pan.w, o), h: lerp(card.h, pan.h, o) };
-  ctx.save(); ctx.globalAlpha = c1 * (1 - x);
-  ctx.shadowColor = 'rgba(27,31,35,' + (.18 * (1 - o)) + ')'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
-  // dark to light quickly, early in the move, so it never sits in a muddy grey
-  var oc = eio(seg(o, .05, .4));
-  rr(e.x, e.y, e.w, e.h, lerp(12, 9, o)); ctx.fillStyle = mixCol([43,50,56], [228,231,234], oc); ctx.fill(); ctx.shadowColor = 'transparent';
-  if (oc > .5){ ctx.strokeStyle = 'rgba(60,66,72,' + (.14 * oc) + ')'; ctx.lineWidth = 1; ctx.stroke(); }
-  // its label rides from the middle of the card to the panel's corner
-  var lx = lerp(e.x + e.w / 2, e.x + 16, o), ly = lerp(e.y + e.h / 2 + 5, e.y + 22, o);
-  var lt = oc > .5;
-  ctx.textAlign = lt ? 'left' : 'center'; if (lt) lx = e.x + 16;
-  ctx.globalAlpha = c1 * (1 - x) * (lt ? seg(oc, .5, 1) : 1 - seg(oc, 0, .5));
-  ctx.font = (lt ? '600 ' + (sm ? 10 : 12) : '700 ' + (sm ? 11 : 14)) + 'px ' + FONT;
-  ctx.fillStyle = lt ? rgba(COL.ink, .5) : '#eceef0';
-  ctx.fillText(lt ? (LANG === 'ja' ? 'あなたのEQの画面' : 'Your EQ’s own window') : (LANG === 'ja' ? 'あなたのEQ' : 'Your EQ'), lx, ly);
-  ctx.restore();
-  // and its knob, once the panel is there
-  if (o > .6){
-    ctx.save(); ctx.globalAlpha = a * seg(o, .6, 1) * (1 - x);
-    knob(pan.x + pan.w / 2, pan.y + pan.h * .5, Math.min(pan.h * .27, sm ? W * .1 : 62), .5 + .25 * turn, t);
-    ctx.restore();
-  }
-  if (clipped) ctx.restore();
-}
-// The last scene: a bell and its reflection shrink into the EQ Mirror mark.
-function bez(p0, p1, p2, p3, u){ var v = 1 - u; return v*v*v*p0 + 3*v*v*u*p1 + 3*v*u*u*p2 + u*u*u*p3; }
-function markPoints(){ var pts = []; for (var i = 0; i <= 60; i++){ var u = i / 60, x, y; if (u <= .5){ var q = u * 2; x = bez(0,4,6,10,q); y = bez(9,9,3,3,q); } else { var q2 = (u - .5) * 2; x = bez(10,14,16,20,q2); y = bez(3,3,7,7,q2); } pts.push([x, y]); } return pts; }
-var MARK = markPoints();
-function sceneMirror(t, s){
-  var m = eio(seg(t, 0, .45)), sm = small();
-  // the finished mark is about 240 points wide (a little under half the screen on a phone)
-  var markW = sm ? W * .46 : Math.min(260, W * .22), sc = markW / 20 / 1.9, cx = W / 2, cy = sm ? H * .7 : H * .7;
-  var zeroY = lerp(H * .62, cy, m);
-  // bell (full width) -> mark (small), point by point
-  var top = [], bot = [];
-  for (var i = 0; i < MARK.length; i++){
-    var u = i / (MARK.length - 1), bx = W * .08 + u * W * .84, by = zeroY - Math.exp(-Math.pow((u - .5) / .16, 2)) * H * .16;
-    var mx = cx + (MARK[i][0] - 10) * sc * 1.9, my = cy + (MARK[i][1] - 11) * sc * 1.9;
-    var x = lerp(bx, mx, m), y = lerp(by, my, m);
-    top.push([x, y]); bot.push([x, 2 * zeroY - y]);
-  }
-  var lineW = lerp(W, 22 * sc * 1.9, m);
-  ctx.strokeStyle = rgba(COL.ink, lerp(.3, .35, m)); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx - lineW / 2, zeroY); ctx.lineTo(cx + lineW / 2, zeroY); ctx.stroke();
-  aura(cx, cy, H * .35, COL.boost, .04 * m); aura(cx, cy + H * .1, H * .3, COL.cut, .035 * m);
-  // the finished mark keeps a fine line: 4 px on top, 5 px for the fainter reflection
-  glow(top, COL.boost, lerp(2.4 * uiScale(W * .84), 4, m));
-  ctx.save(); ctx.globalAlpha = lerp(.3, .38, m); path(bot); ctx.strokeStyle = rgba(COL.ink, .9); ctx.lineWidth = lerp(2.4 * uiScale(W * .84), 5, m); ctx.lineCap = 'round'; ctx.stroke(); ctx.restore();
-}
-var SCENES = [sceneSignal, sceneDial, sceneListeners, sceneDifference, sceneDock, sceneEvidence, sceneStereo, sceneNull, sceneMirror];
 
-/* ------------------------------------------------ kinetic captions */
-var caps = Array.prototype.slice.call(document.querySelectorAll('.cap')).map(function(el){
-  var chars = [];
-  el.querySelectorAll('.kin').forEach(function(k){
-    (function walk(node){
-      Array.prototype.slice.call(node.childNodes).forEach(function(n){
-        if (n.nodeType === 3){
-          // A line may break only between phrases: at a space, or where the
-          // markup has a <wbr> (which ends the text node). Inside a phrase the
-          // letters are held together, so no word is split across two lines.
-          var f = document.createDocumentFragment();
-          n.textContent.split(/( +)/).forEach(function(word){
-            if (!word) return;
-            if (/^ +$/.test(word)){ var sp = document.createElement('span'); sp.className = 'sp'; f.appendChild(sp); return; }
-            var ph = document.createElement('span'); ph.className = 'ph';
-            word.split('').forEach(function(ch){ var c = document.createElement('span'); c.className = 'c'; c.textContent = ch; ph.appendChild(c); chars.push(c); });
-            f.appendChild(ph);
-          });
-          n.parentNode.replaceChild(f, n);
-        } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
-      });
-    })(k);
-  });
-  return { el: el, ch: +el.dataset.ch, a: +el.dataset.a, b: +el.dataset.b, chars: chars, p: el.querySelectorAll('p') };
-});
-function drawCaps(ci, t){
-  caps.forEach(function(c){
-    var on = c.ch === ci && t >= c.a && t <= c.b;
-    c.el.classList.toggle('show', on);
-    if (!on){ c.el.style.opacity = 0; return; }
-    var span = c.b - c.a, rin = seg(t, c.a, c.a + span * .45), rout = c.b >= 1 && ci === CH - 1 ? 0 : seg(t, c.b - span * .18, c.b);
-    // the title does not wait for a scroll: it comes up with the opening, so the
-    // first screen already says what this is
-    if (c.el.id === 'title') rin = Math.max(rin, REDUCED ? 1 : seg(NOW - introT0, 400, 1900));
-    c.el.style.opacity = 1 - rout; c.el.style.transform = 'translateY(' + (-rout * 30) + 'px)';
-    var vis = c.chars.filter(function(ch){ return ch.offsetParent !== null; }), n = vis.length || 1;
-    vis.forEach(function(ch, i){
-      var q = eout(clamp(rin * 1.7 - i / n * .7, 0, 1));
-      ch.style.opacity = q; ch.style.transform = 'translateY(' + ((1 - q) * .55) + 'em) rotate(' + ((1 - q) * 9) + 'deg)'; ch.style.filter = q < .99 ? 'blur(' + ((1 - q) * 8) + 'px)' : 'none';
-    });
-    c.p.forEach(function(p){ var q = eout(seg(rin, .45, 1)); p.style.opacity = q; p.style.transform = 'translateY(' + ((1 - q) * 14) + 'px)'; });
-  });
-}
+  function frame(now){
+    if (!running) return;
+    var dt = Math.min(.05, (now - last) / 1000 || .016); last = now;
+    var k = 1 - Math.exp(-dt / .09), moved = false;
+    for (var i = 0; i < N; i++){ var d = target[i] - shown[i]; if (Math.abs(d) > .002){ shown[i] += d * k; moved = true; } }
+    // Drawn only when something changed: the curve settling after a knob,
+    // the pointer over it, a resize. The spectrum behind stays still, as it
+    // does in the plug-in with the transport stopped.
+    var hoverMoving = Math.abs((hoverX >= 0 ? 1 : 0) - hoverA) > .01;
+    if (moved || dirty || hoverMoving){ updateRange(); draw(); dirty = false; }
+    requestAnimationFrame(frame);
+  }
+  function start(){ if (running || !visible) return; running = true; last = performance.now(); requestAnimationFrame(frame); }
+  function stop(){ running = false; }
+  new IntersectionObserver(function(es){ visible = es[0].isIntersecting; visible ? start() : stop(); }).observe(cv);
+  document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : start(); });
 
-/* ------------------------------------------------ HUD */
-var ticks = document.getElementById('ticks'), chNum = document.getElementById('chNum'), chName = document.getElementById('chName'), tc = document.getElementById('tc'), hint = document.getElementById('hint');
-var hudTop = document.querySelector('.hud.top'), hudBottom = document.querySelector('.hud.bottom'), grainEl = document.getElementById('grain');
-for (var ti = 0; ti < CH; ti++) ticks.appendChild(document.createElement('i'));
-var tickEls = ticks.querySelectorAll('i');
-
-/* ------------------------------------------------ the loop */
-var film = document.getElementById('film'), cur = 0, wasStill = false;
-function frame(now){
-  NOW = now; if (!introT0) introT0 = now;
-  var total = film.offsetHeight - innerHeight, target = clamp(scrollY / total, 0, 1.06);
-  cur = (REDUCED) ? target : cur + (target - cur) * .1;
-  // once the page below has taken over, the last scene has settled and the
-  // letterbox has opened, nothing on the stage moves: draw it once more, then
-  // leave it until the reader scrolls back
-  var over = seg(target, .985, 1.05), still = over >= 1 && cur >= 1 && now - introT0 > 1400;
-  if (still && wasStill){ requestAnimationFrame(frame); return; }
-  wasStill = still; grainEl.style.animationPlayState = still ? 'paused' : '';
-  var p = clamp(cur, 0, 1), f = p * CH, ci = Math.min(CH - 1, Math.floor(f)), t = f - ci, s = REDUCED ? 4 : now / 1000;
-  ctx.clearRect(0, 0, W, H);
-  // crossfade: the outgoing scene lingers for a moment under the incoming one
-  var fadeIn = ci > 0 && SCENES[ci] !== sceneDock ? eout(seg(t, 0, .1)) : 1;
-  if (ci > 0 && fadeIn < 1){ ctx.save(); ctx.globalAlpha = 1 - fadeIn; SCENES[ci - 1](1, s, false); ctx.restore(); }
-  ctx.save(); ctx.globalAlpha = fadeIn; SCENES[ci](t, s, true); ctx.restore();
-  if (ci !== 5){ numEl.style.opacity = 0; numCap.style.opacity = 0; }
-  if (ci !== 7) zeroEl.style.opacity = 0;
-  drawCaps(ci, t);
-  // letterbox opens as the film starts; closes again at the end credits
-  var bar = Math.max(0, 1 - eout((now - introT0) / 1400)) * H * .5;  // on the light stage the bars only open; closing them again reads as a dark smear
-  document.body.style.setProperty('--bar', bar + 'px');
-  // numbered as the captions are: the title is 00, the dial 01
-  chNum.textContent = '0' + ci; chName.textContent = NAMES[ci];
-  tickEls.forEach(function(el, i){ el.style.setProperty('--f', i < ci ? 1 : i === ci ? t : 0); });
-  var secs = p * 81, fr = Math.floor((secs % 1) * 24);
-  tc.textContent = '00:00:' + String(Math.floor(secs)).padStart(2, '0') + ':' + String(fr).padStart(2, '0');
-  hint.style.opacity = 1 - seg(p, 0, .015);
-  // once the film is over, the page below takes over and the stage dims; the
-  // chapter and timecode go first, so they never sit on the price or the specs
-  cv.style.opacity = 1 - over * .85; hudBottom.style.opacity = 1 - seg(target, .985, 1.005);
-  hudTop.classList.toggle('ground', target > 1.005);
-  requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
+  // A first shape, so the curve is not flat before anyone touches it.
+  S.low = 4; S.midGain = -3; S.midFreq = 600; S.high = 5;
+  document.querySelectorAll('.knob').forEach(function(b){ b._draw(); });
+  spectrum();
+  retarget(); shown = Float32Array.from(target); updateRange();
+  resize();
+  if (REDUCED){ draw(); }
 })();
 </script>
 </body>
