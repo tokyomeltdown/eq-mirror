@@ -6,7 +6,7 @@ Put one EQ Mirror before your EQ and one after it, and you'll see the curve your
 
 → **[Download the free trial](https://github.com/tokyomeltdown/eq-mirror/releases/latest/download/EQMirror.pkg)** — 14 days, every feature, no account needed
 → **[Landing page](https://tokyomeltdown.github.io/eq-mirror/)**
-→ **[Buy on Gumroad — $18](https://tokyomeltdown.gumroad.com/l/eqmirror)**
+→ **[Buy on Gumroad — $29](https://tokyomeltdown.gumroad.com/l/eqmirror)**
 
 ---
 
